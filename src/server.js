@@ -6,15 +6,15 @@ import redisPlugin from './plugins/redis.js'
 import clerkPlugin from './plugins/clerk.js'
 import healthRoutes from './modules/health/routes.js'
 
-export async function build(opts = {}) {
+export async function build({ logger: loggerOpt, ...rest } = {}) {
   const fastify = Fastify({
-    logger: opts.logger ?? {
+    logger: loggerOpt ?? {
       level: config.LOG_LEVEL,
       ...(config.NODE_ENV === 'development' && {
         transport: { target: 'pino-pretty' },
       }),
     },
-    ...opts,
+    ...rest,
   })
 
   await fastify.register(cors)
