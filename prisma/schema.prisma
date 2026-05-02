@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum TriggerType {
+  COMMENT_KEYWORD
+  DM_KEYWORD
+}
+
+enum MatchType {
+  CONTAINS
+  EXACT
+  STARTS_WITH
+}
+
+enum ActionType {
+  SEND_DM
+  REPLY_COMMENT
+  REPLY_DM
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}
+
+enum LogOutcome {
+  EXECUTED
+  SKIPPED_ONCE_PER_USER
+  SKIPPED_COOLDOWN
+  FAILED
+}
+
+// ─── Core ─────────────────────────────────────────────────────────────────────
+
+// One row per Clerk user
+model User {
+  id             String          @id @default(cuid())
+  clerkId        String          @unique
+  email          String          @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  socialAccounts SocialAccount[]
+}
+
+// One row per connected Instagram account
+model SocialAccount {
+  id                   String    @id @default(cuid())
+  userId               String
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  platform             String    @default("INSTAGRAM")
+  instagramAccountId   String    // IG Business Account ID from Meta
+  instagramUsername    String
+  accessToken          String    // long-lived page/user access token
+  tokenExpiresAt       DateTime?
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  scheduledPosts       ScheduledPost[]
+  automationRules      AutomationRule[]
+
+  @@unique([userId, instagramAccountId])
+}
+
+// ─── Scheduled Posts ──────────────────────────────────────────────────────────
+
+model ScheduledPost {
+  id              String        @id @default(cuid())
+  socialAccountId String
+  socialAccount   SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+
+  caption         String
+  mediaUrl        String?       // image/video URL to upload
+  scheduledAt     DateTime
+  status          PostStatus    @default(SCHEDULED)
+  bullJobId       String?       // BullMQ job ID for cancellation
+  errorMessage    String?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([socialAccountId, scheduledAt])
+  @@index([status])
+}
+
+// ─── Rule Engine ──────────────────────────────────────────────────────────────
+
+model AutomationRule {
+  id              String        @id @default(cuid())
+  socialAccountId String
+  socialAccount   SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+
+  // Trigger
+  triggerType     TriggerType
+  triggerKeyword  String
+  matchType       MatchType
+  postId          String?       // null = all posts; set = specific IG post ID only
+
+  // Action
+  actionType      ActionType
+  messageTemplate String        // supports {{first_name}}
+
+  // Deduplication
+  replyOncePerUser  Boolean     @default(true)
+  cooldownMinutes   Int         @default(60)
+
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  executions      RuleExecution[]
+  executionLogs   RuleExecutionLog[]
+
+  @@index([socialAccountId, isActive])
+  @@index([socialAccountId, triggerType, isActive])
+}
+
+// One row per (rule, instagramUser) pair — enforces replyOncePerUser at DB level
+model RuleExecution {
+  id              String         @id @default(cuid())
+  ruleId          String
+  rule            AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  instagramUserId String         // IG-scoped user ID from webhook event
+  executedAt      DateTime       @default(now())
+
+  @@unique([ruleId, instagramUserId])
+}
+
+// Append-only log of every trigger attempt — never update or delete rows
+model RuleExecutionLog {
+  id              String         @id @default(cuid())
+  ruleId          String
+  rule            AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  instagramUserId String
+  triggerPayload  Json           // raw webhook event object
+  outcome         LogOutcome
+  errorMessage    String?
+
+  createdAt       DateTime       @default(now())
+
+  @@index([ruleId, instagramUserId, createdAt])
+  @@index([ruleId, createdAt])
+}
