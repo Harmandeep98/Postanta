@@ -1,0 +1,8 @@
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+process.env.REDIS_URL = 'redis://localhost:6379'
+process.env.CLERK_SECRET_KEY = 'sk_test_fake_key_for_tests'
+process.env.META_APP_ID = 'test_app_id'
+process.env.META_APP_SECRET = 'test_app_secret'
+process.env.META_WEBHOOK_SECRET = 'test_webhook_secret'
+process.env.NODE_ENV = 'test'
+process.env.LOG_LEVEL = 'silent'
