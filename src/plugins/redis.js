@@ -3,17 +3,11 @@ import Redis from 'ioredis'
 import { config } from '../config.js'
 
 async function redisPlugin(fastify) {
-  const redis = new Redis(config.REDIS_URL, {
-    lazyConnect: true,
-  })
+  const redis = new Redis(config.REDIS_URL)
 
   const redisWorker = new Redis(config.REDIS_URL, {
     maxRetriesPerRequest: null,
-    lazyConnect: true,
   })
-
-  await redis.connect()
-  await redisWorker.connect()
 
   fastify.decorate('redis', redis)
   fastify.decorate('redisWorker', redisWorker)
