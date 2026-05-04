@@ -6,6 +6,7 @@ import redisPlugin from './plugins/redis.js'
 import clerkPlugin from './plugins/clerk.js'
 import healthRoutes from './modules/health/routes.js'
 import { authPublicRoutes, authProtectedRoutes } from './modules/auth/routes.js'
+import accountRoutes from './modules/accounts/routes.js'
 
 export async function build({ logger: loggerOpt, ...rest } = {}) {
   const fastify = Fastify({
@@ -30,7 +31,7 @@ export async function build({ logger: loggerOpt, ...rest } = {}) {
   await fastify.register(async (protectedApp) => {
     await protectedApp.register(clerkPlugin)
     await protectedApp.register(authProtectedRoutes)
-    // accounts module added in Task 5
+    await protectedApp.register(accountRoutes)
   })
 
   return fastify
