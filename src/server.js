@@ -5,6 +5,7 @@ import prismaPlugin from './plugins/prisma.js'
 import redisPlugin from './plugins/redis.js'
 import clerkPlugin from './plugins/clerk.js'
 import healthRoutes from './modules/health/routes.js'
+import { authPublicRoutes, authProtectedRoutes } from './modules/auth/routes.js'
 
 export async function build({ logger: loggerOpt, ...rest } = {}) {
   const fastify = Fastify({
@@ -21,13 +22,15 @@ export async function build({ logger: loggerOpt, ...rest } = {}) {
   await fastify.register(prismaPlugin)
   await fastify.register(redisPlugin)
 
-  // Unprotected routes — no auth required
+  // Unprotected routes
   await fastify.register(healthRoutes)
+  await fastify.register(authPublicRoutes)
 
   // Protected scope — clerk onRequest hook applies only inside this child scope
   await fastify.register(async (protectedApp) => {
     await protectedApp.register(clerkPlugin)
-    // Future authenticated modules register here
+    await protectedApp.register(authProtectedRoutes)
+    // accounts module added in Task 5
   })
 
   return fastify
