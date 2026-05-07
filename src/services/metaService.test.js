@@ -17,6 +17,10 @@ const {
   refreshLongLivedToken,
   getInstagramAccounts,
   getValidToken,
+  publishImage,
+  createVideoContainer,
+  getContainerStatus,
+  publishContainer,
 } = await import('./metaService.js')
 
 describe('exchangeCodeForShortLivedToken', () => {
@@ -149,5 +153,80 @@ describe('getValidToken', () => {
       where: { id: 'acc-1' },
       data: expect.objectContaining({ accessToken: 'new-token' }),
     })
+  })
+})
+
+describe('publishImage', () => {
+  beforeEach(() => fetchMock.mockReset())
+
+  it('POSTs to /{igId}/media and returns containerId', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: 'container-1' }),
+    })
+    const containerId = await publishImage('ig-123', 'token-abc', {
+      imageUrl: 'https://cdn.example.com/img.jpg',
+      caption: 'Hello!',
+    })
+    expect(containerId).toBe('container-1')
+    const [url, opts] = fetchMock.mock.calls[0]
+    expect(opts?.method).toBe('POST')
+    expect(url.toString()).toContain('/ig-123/media')
+    expect(url.toString()).toContain('image_url=')
+    expect(url.toString()).toContain('caption=Hello%21')
+  })
+})
+
+describe('createVideoContainer', () => {
+  beforeEach(() => fetchMock.mockReset())
+
+  it('POSTs to /{igId}/media with media_type=REELS and returns containerId', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: 'container-2' }),
+    })
+    const containerId = await createVideoContainer('ig-123', 'token-abc', {
+      videoUrl: 'https://cdn.example.com/clip.mp4',
+      caption: 'Video!',
+    })
+    expect(containerId).toBe('container-2')
+    const [url, opts] = fetchMock.mock.calls[0]
+    expect(opts?.method).toBe('POST')
+    expect(url.toString()).toContain('media_type=REELS')
+    expect(url.toString()).toContain('video_url=')
+    expect(url.toString()).toContain('caption=')
+  })
+})
+
+describe('getContainerStatus', () => {
+  beforeEach(() => fetchMock.mockReset())
+
+  it('GETs container status_code and returns it', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ status_code: 'FINISHED' }),
+    })
+    const status = await getContainerStatus('container-1', 'token-abc')
+    expect(status).toBe('FINISHED')
+    const [url] = fetchMock.mock.calls[0]
+    expect(url.toString()).toContain('/container-1')
+    expect(url.toString()).toContain('fields=status_code')
+  })
+})
+
+describe('publishContainer', () => {
+  beforeEach(() => fetchMock.mockReset())
+
+  it('POSTs to /{igId}/media_publish and returns mediaId', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: 'media-id-1' }),
+    })
+    const mediaId = await publishContainer('ig-123', 'token-abc', 'container-1')
+    expect(mediaId).toBe('media-id-1')
+    const [url, opts] = fetchMock.mock.calls[0]
+    expect(opts?.method).toBe('POST')
+    expect(url.toString()).toContain('/ig-123/media_publish')
+    expect(url.toString()).toContain('creation_id=container-1')
   })
 })
