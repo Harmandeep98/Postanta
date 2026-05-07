@@ -7,6 +7,7 @@ import clerkPlugin from './plugins/clerk.js'
 import healthRoutes from './modules/health/routes.js'
 import { authPublicRoutes, authProtectedRoutes } from './modules/auth/routes.js'
 import accountRoutes from './modules/accounts/routes.js'
+import postRoutes from './modules/posts/routes.js'
 import { createTokenRefreshQueue } from './queues/tokenRefreshQueue.js'
 import { createTokenRefreshWorker, scheduleTokenRefreshJob } from './workers/tokenRefreshWorker.js'
 
@@ -34,6 +35,7 @@ export async function build({ logger: loggerOpt, ...rest } = {}) {
     await protectedApp.register(clerkPlugin)
     await protectedApp.register(authProtectedRoutes)
     await protectedApp.register(accountRoutes)
+    await protectedApp.register(postRoutes)
   })
 
   return fastify
