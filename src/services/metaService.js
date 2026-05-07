@@ -2,10 +2,18 @@ import { config } from '../config.js'
 
 const GRAPH_URL = 'https://graph.facebook.com/v21.0'
 
-async function graphFetch(url) {
-  const res = await fetch(url)
+async function graphFetch(url, options = {}) {
+  const res = await fetch(url, options)
+  if (!res.ok) {
+    let message = 'Meta API error'
+    try {
+      const data = await res.json()
+      message = data.error?.message ?? message
+    } catch {}
+    throw new Error(message)
+  }
   const data = await res.json()
-  if (!res.ok || data.error) throw new Error(data.error?.message ?? 'Meta API error')
+  if (data.error) throw new Error(data.error.message)
   return data
 }
 
@@ -73,4 +81,39 @@ export async function getValidToken(socialAccount, prisma) {
     data: { accessToken, tokenExpiresAt },
   })
   return accessToken
+}
+
+export async function publishImage(instagramAccountId, accessToken, { imageUrl, caption }) {
+  const url = new URL(`${GRAPH_URL}/${instagramAccountId}/media`)
+  url.searchParams.set('access_token', accessToken)
+  url.searchParams.set('image_url', imageUrl)
+  if (caption) url.searchParams.set('caption', caption)
+  const data = await graphFetch(url, { method: 'POST' })
+  return data.id
+}
+
+export async function createVideoContainer(instagramAccountId, accessToken, { videoUrl, caption }) {
+  const url = new URL(`${GRAPH_URL}/${instagramAccountId}/media`)
+  url.searchParams.set('access_token', accessToken)
+  url.searchParams.set('video_url', videoUrl)
+  url.searchParams.set('media_type', 'REELS')
+  if (caption) url.searchParams.set('caption', caption)
+  const data = await graphFetch(url, { method: 'POST' })
+  return data.id
+}
+
+export async function getContainerStatus(containerId, accessToken) {
+  const url = new URL(`${GRAPH_URL}/${containerId}`)
+  url.searchParams.set('fields', 'status_code')
+  url.searchParams.set('access_token', accessToken)
+  const data = await graphFetch(url)
+  return data.status_code
+}
+
+export async function publishContainer(instagramAccountId, accessToken, containerId) {
+  const url = new URL(`${GRAPH_URL}/${instagramAccountId}/media_publish`)
+  url.searchParams.set('access_token', accessToken)
+  url.searchParams.set('creation_id', containerId)
+  const data = await graphFetch(url, { method: 'POST' })
+  return data.id
 }
