@@ -17,6 +17,10 @@ const {
   refreshLongLivedToken,
   getInstagramAccounts,
   getValidToken,
+  publishImage,
+  createVideoContainer,
+  getContainerStatus,
+  publishContainer,
 } = await import('./metaService.js')
 
 describe('exchangeCodeForShortLivedToken', () => {
@@ -160,7 +164,6 @@ describe('publishImage', () => {
       ok: true,
       json: () => Promise.resolve({ id: 'container-1' }),
     })
-    const { publishImage } = await import('./metaService.js')
     const containerId = await publishImage('ig-123', 'token-abc', {
       imageUrl: 'https://cdn.example.com/img.jpg',
       caption: 'Hello!',
@@ -170,7 +173,7 @@ describe('publishImage', () => {
     expect(opts?.method).toBe('POST')
     expect(url.toString()).toContain('/ig-123/media')
     expect(url.toString()).toContain('image_url=')
-    expect(url.toString()).toContain('caption=Hello')
+    expect(url.toString()).toContain('caption=Hello%21')
   })
 })
 
@@ -182,7 +185,6 @@ describe('createVideoContainer', () => {
       ok: true,
       json: () => Promise.resolve({ id: 'container-2' }),
     })
-    const { createVideoContainer } = await import('./metaService.js')
     const containerId = await createVideoContainer('ig-123', 'token-abc', {
       videoUrl: 'https://cdn.example.com/clip.mp4',
       caption: 'Video!',
@@ -192,6 +194,7 @@ describe('createVideoContainer', () => {
     expect(opts?.method).toBe('POST')
     expect(url.toString()).toContain('media_type=REELS')
     expect(url.toString()).toContain('video_url=')
+    expect(url.toString()).toContain('caption=')
   })
 })
 
@@ -203,7 +206,6 @@ describe('getContainerStatus', () => {
       ok: true,
       json: () => Promise.resolve({ status_code: 'FINISHED' }),
     })
-    const { getContainerStatus } = await import('./metaService.js')
     const status = await getContainerStatus('container-1', 'token-abc')
     expect(status).toBe('FINISHED')
     const [url] = fetchMock.mock.calls[0]
@@ -220,7 +222,6 @@ describe('publishContainer', () => {
       ok: true,
       json: () => Promise.resolve({ id: 'media-id-1' }),
     })
-    const { publishContainer } = await import('./metaService.js')
     const mediaId = await publishContainer('ig-123', 'token-abc', 'container-1')
     expect(mediaId).toBe('media-id-1')
     const [url, opts] = fetchMock.mock.calls[0]

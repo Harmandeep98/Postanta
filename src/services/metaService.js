@@ -4,8 +4,16 @@ const GRAPH_URL = 'https://graph.facebook.com/v21.0'
 
 async function graphFetch(url, options = {}) {
   const res = await fetch(url, options)
+  if (!res.ok) {
+    let message = 'Meta API error'
+    try {
+      const data = await res.json()
+      message = data.error?.message ?? message
+    } catch {}
+    throw new Error(message)
+  }
   const data = await res.json()
-  if (!res.ok || data.error) throw new Error(data.error?.message ?? 'Meta API error')
+  if (data.error) throw new Error(data.error.message)
   return data
 }
 
