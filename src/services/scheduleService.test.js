@@ -44,7 +44,16 @@ describe('rescheduleJob', () => {
     expect(newId).toBe('new-job-id')
   })
 
-  it('throws if old job not found', async () => {
+  it('creates new job when old job not found but postId provided', async () => {
+    mockQueue.getJob.mockResolvedValueOnce(null)
+    mockQueue.add.mockResolvedValueOnce({ id: 'new-job-fallback' })
+    const futureDate = new Date(Date.now() + 120_000).toISOString()
+    const newId = await svc.rescheduleJob('missing-job', futureDate, 'post-99')
+    expect(mockQueue.add).toHaveBeenCalled()
+    expect(newId).toBe('new-job-fallback')
+  })
+
+  it('throws if old job not found and no postId provided', async () => {
     mockQueue.getJob.mockResolvedValueOnce(null)
     await expect(svc.rescheduleJob('missing-job', new Date().toISOString())).rejects.toThrow(
       'not found',

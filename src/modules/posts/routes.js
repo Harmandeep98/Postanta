@@ -15,7 +15,10 @@ export default async function postRoutes(fastify) {
     if (!contentType) return reply.code(400).send({ error: 'contentType is required' })
     try {
       return await mediaService.getUploadUrl(contentType)
-    } catch {
+    } catch (err) {
+      if (err.message.startsWith('Unsupported content type')) {
+        return reply.code(400).send({ error: err.message })
+      }
       return reply.code(500).send({ error: 'Failed to generate upload URL' })
     }
   })
@@ -90,7 +93,7 @@ export default async function postRoutes(fastify) {
     if (mediaUrl !== undefined) updateData.mediaUrl = mediaUrl
     if (scheduledAt !== undefined) {
       updateData.scheduledAt = new Date(scheduledAt)
-      updateData.bullJobId = await scheduleService.rescheduleJob(post.bullJobId, scheduledAt)
+      updateData.bullJobId = await scheduleService.rescheduleJob(post.bullJobId, scheduledAt, post.id)
     }
 
     return fastify.prisma.scheduledPost.update({ where: { id: post.id }, data: updateData })

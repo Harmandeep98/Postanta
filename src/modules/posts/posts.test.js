@@ -100,6 +100,17 @@ describe('GET /media/upload-url', () => {
     expect(body.uploadUrl).toBeDefined()
     expect(body.mediaUrl).toBeDefined()
   })
+
+  it('returns 400 for unsupported content type', async () => {
+    mockGetUploadUrl.mockRejectedValueOnce(new Error('Unsupported content type: text/html'))
+    const res = await fastify.inject({
+      method: 'GET',
+      url: '/media/upload-url?contentType=text/html',
+      headers: AUTH_HEADER,
+    })
+    expect(res.statusCode).toBe(400)
+    expect(res.json().error).toContain('Unsupported content type')
+  })
 })
 
 describe('POST /posts', () => {
@@ -197,6 +208,9 @@ describe('GET /posts', () => {
     })
     expect(res.statusCode).toBe(200)
     expect(res.json()).toHaveLength(1)
+    expect(prismaScheduledPostFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ orderBy: { scheduledAt: 'desc' } }),
+    )
   })
 
   it('returns 404 for another user\'s account', async () => {

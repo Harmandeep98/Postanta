@@ -9,12 +9,15 @@ export function createScheduleService(queue) {
     return job.id
   }
 
-  async function rescheduleJob(bullJobId, scheduledAt) {
+  async function rescheduleJob(bullJobId, scheduledAt, postId) {
     const existing = await queue.getJob(bullJobId)
-    if (!existing) throw new Error(`Job ${bullJobId} not found`)
-    const { postId } = existing.data
-    await existing.remove()
-    return createJob(postId, scheduledAt)
+    if (existing) {
+      await existing.remove()
+      return createJob(existing.data.postId, scheduledAt)
+    }
+    // Old job already ran or was removed; create fresh job if postId provided
+    if (postId) return createJob(postId, scheduledAt)
+    throw new Error(`Job ${bullJobId} not found`)
   }
 
   async function cancelJob(bullJobId) {
