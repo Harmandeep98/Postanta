@@ -56,9 +56,11 @@ export async function start() {
   const postWorker = createPostWorker(fastify.redisWorker, fastify.prisma, fastify.log)
 
   fastify.addHook('onClose', async () => {
-    await tokenRefreshWorker.close()
+    await Promise.all([
+      tokenRefreshWorker.close(),
+      postWorker.close(),
+    ])
     await tokenRefreshQueue.close()
-    await postWorker.close()
   })
 
   await fastify.listen({ port: config.PORT, host: '0.0.0.0' })
