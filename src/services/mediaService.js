@@ -11,7 +11,18 @@ const s3 = new S3Client({
   },
 })
 
+const ALLOWED_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'video/mp4',
+  'video/quicktime',
+])
+
 export async function getUploadUrl(contentType) {
+  if (!ALLOWED_TYPES.has(contentType)) {
+    throw new Error(`Unsupported content type: ${contentType}`)
+  }
   const key = randomUUID()
   const command = new PutObjectCommand({
     Bucket: config.AWS_S3_BUCKET,

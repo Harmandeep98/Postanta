@@ -45,4 +45,9 @@ describe('getUploadUrl', () => {
     const b = await getUploadUrl('image/jpeg')
     expect(a.mediaUrl).not.toBe(b.mediaUrl)
   })
+
+  it('propagates errors from getSignedUrl', async () => {
+    mockGetSignedUrl.mockRejectedValueOnce(new Error('SDK failure'))
+    await expect(getUploadUrl('image/jpeg')).rejects.toThrow('SDK failure')
+  })
 })
