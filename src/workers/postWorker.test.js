@@ -98,7 +98,7 @@ describe('publishPost', () => {
     metaService.getContainerStatus.mockResolvedValue('IN_PROGRESS')
 
     await expect(
-      publishPost({ data: { postId: 'post-3' } }, prisma, log, { pollIntervalMs: 0 }),
+      publishPost({ id: 'job-3', attemptsMade: 0, data: { postId: 'post-3' } }, prisma, log, { pollIntervalMs: 0 }),
     ).rejects.toThrow('Video processing timed out')
 
     expect(mockPrismaUpdate).toHaveBeenCalledWith({
@@ -106,6 +106,10 @@ describe('publishPost', () => {
       data: { status: 'FAILED', errorMessage: 'Video processing timed out' },
     })
     expect(metaService.getContainerStatus).toHaveBeenCalledTimes(10)
+    expect(log.error).toHaveBeenCalledWith(
+      { postId: 'post-3', jobId: 'job-3', err: 'Video processing timed out', attempt: 0 },
+      'post publish failed',
+    )
   })
 
   it('skips silently when post not found', async () => {
@@ -113,6 +117,7 @@ describe('publishPost', () => {
     await publishPost({ data: { postId: 'missing' } }, prisma, log, { pollIntervalMs: 0 })
     expect(metaService.publishImage).not.toHaveBeenCalled()
     expect(mockPrismaUpdate).not.toHaveBeenCalled()
+    expect(log.warn).toHaveBeenCalledWith({ postId: 'missing' }, 'scheduledPost not found, skipping')
   })
 
   it('skips silently when post status is not SCHEDULED', async () => {
@@ -123,6 +128,7 @@ describe('publishPost', () => {
     })
     await publishPost({ data: { postId: 'post-5' } }, prisma, log, { pollIntervalMs: 0 })
     expect(metaService.publishImage).not.toHaveBeenCalled()
+    expect(log.warn).toHaveBeenCalledWith({ postId: 'post-5', status: 'PUBLISHED' }, 'scheduledPost not in SCHEDULED state, skipping')
   })
 
   it('sets FAILED and rethrows on Meta API error', async () => {
@@ -137,13 +143,17 @@ describe('publishPost', () => {
     metaService.publishImage.mockRejectedValueOnce(new Error('Meta API error'))
 
     await expect(
-      publishPost({ data: { postId: 'post-6' } }, prisma, log, { pollIntervalMs: 0 }),
+      publishPost({ id: 'job-6', attemptsMade: 1, data: { postId: 'post-6' } }, prisma, log, { pollIntervalMs: 0 }),
     ).rejects.toThrow('Meta API error')
 
     expect(mockPrismaUpdate).toHaveBeenCalledWith({
       where: { id: 'post-6' },
       data: { status: 'FAILED', errorMessage: 'Meta API error' },
     })
+    expect(log.error).toHaveBeenCalledWith(
+      { postId: 'post-6', jobId: 'job-6', err: 'Meta API error', attempt: 1 },
+      'post publish failed',
+    )
   })
 
   it('sets FAILED and rethrows when video container enters ERROR state', async () => {
@@ -159,7 +169,7 @@ describe('publishPost', () => {
     metaService.getContainerStatus.mockResolvedValue('ERROR')
 
     await expect(
-      publishPost({ data: { postId: 'post-7' } }, prisma, log, { pollIntervalMs: 0 }),
+      publishPost({ id: 'job-7', attemptsMade: 2, data: { postId: 'post-7' } }, prisma, log, { pollIntervalMs: 0 }),
     ).rejects.toThrow('Video container processing failed')
 
     expect(metaService.getContainerStatus).toHaveBeenCalledTimes(1)
@@ -167,5 +177,9 @@ describe('publishPost', () => {
       where: { id: 'post-7' },
       data: { status: 'FAILED', errorMessage: 'Video container processing failed' },
     })
+    expect(log.error).toHaveBeenCalledWith(
+      { postId: 'post-7', jobId: 'job-7', err: 'Video container processing failed', attempt: 2 },
+      'post publish failed',
+    )
   })
 })
