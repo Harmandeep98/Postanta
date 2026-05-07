@@ -300,6 +300,28 @@ describe('PATCH /posts/:id', () => {
       expect.objectContaining({ data: expect.objectContaining({ bullJobId: 'new-job-id' }) }),
     )
   })
+
+  it('resets FAILED post to SCHEDULED when scheduledAt changes', async () => {
+    prismaScheduledPostFindFirst.mockResolvedValueOnce({ id: 'post-1', status: 'FAILED', bullJobId: 'old-job' })
+    const existingJob = { id: 'old-job', data: { postId: 'post-1' }, remove: mockJobRemove }
+    mockQueueGetJob.mockResolvedValueOnce(existingJob)
+    mockQueueAdd.mockResolvedValueOnce({ id: 'new-job-id' })
+    prismaScheduledPostUpdate.mockResolvedValueOnce({ id: 'post-1', status: 'SCHEDULED', bullJobId: 'new-job-id' })
+
+    const newDate = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()
+    const res = await fastify.inject({
+      method: 'PATCH',
+      url: '/posts/post-1',
+      headers: AUTH_HEADER,
+      body: { scheduledAt: newDate },
+    })
+    expect(res.statusCode).toBe(200)
+    expect(prismaScheduledPostUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: 'SCHEDULED', errorMessage: null }),
+      }),
+    )
+  })
 })
 
 describe('DELETE /posts/:id', () => {

@@ -91,7 +91,17 @@ export default async function postRoutes(fastify) {
     if (mediaUrl !== undefined) updateData.mediaUrl = mediaUrl
     if (scheduledAt !== undefined) {
       updateData.scheduledAt = new Date(scheduledAt)
-      updateData.bullJobId = await scheduleService.rescheduleJob(post.bullJobId, scheduledAt, post.id)
+      try {
+        updateData.bullJobId = await scheduleService.rescheduleJob(post.bullJobId, scheduledAt, post.id)
+      } catch (err) {
+        await fastify.prisma.scheduledPost.update({
+          where: { id: post.id },
+          data: { status: 'FAILED', errorMessage: `Reschedule failed: ${err.message}` },
+        })
+        return reply.code(500).send({ error: 'Failed to reschedule post' })
+      }
+      updateData.status = 'SCHEDULED'
+      updateData.errorMessage = null
     }
 
     return fastify.prisma.scheduledPost.update({ where: { id: post.id }, data: updateData })
