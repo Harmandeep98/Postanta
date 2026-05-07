@@ -9,6 +9,7 @@ async function pollContainer(containerId, accessToken, intervalMs) {
   for (let i = 0; i < 10; i++) {
     const status = await metaService.getContainerStatus(containerId, accessToken)
     if (status === 'FINISHED') return
+    if (status === 'ERROR') throw new Error('Video container processing failed')
     if (i < 9) await new Promise((r) => setTimeout(r, intervalMs))
   }
   throw new Error('Video processing timed out')
@@ -22,7 +23,14 @@ export async function publishPost(job, prisma, log, { pollIntervalMs = 5000 } = 
     include: { socialAccount: true },
   })
 
-  if (!post || post.status !== 'SCHEDULED') return
+  if (!post) {
+    log.warn({ postId }, 'scheduledPost not found, skipping')
+    return
+  }
+  if (post.status !== 'SCHEDULED') {
+    log.warn({ postId, status: post.status }, 'scheduledPost not in SCHEDULED state, skipping')
+    return
+  }
 
   const accessToken = await metaService.getValidToken(post.socialAccount, prisma)
   const { instagramAccountId } = post.socialAccount
@@ -51,7 +59,7 @@ export async function publishPost(job, prisma, log, { pollIntervalMs = 5000 } = 
       where: { id: postId },
       data: { status: 'FAILED', errorMessage: err.message },
     })
-    log.error({ postId, err: err.message }, 'post publish failed')
+    log.error({ postId, jobId: job.id, err: err.message, attempt: job.attemptsMade }, 'post publish failed')
     throw err
   }
 }

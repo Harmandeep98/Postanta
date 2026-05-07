@@ -20,7 +20,7 @@ const prisma = {
     update: mockPrismaUpdate,
   },
 }
-const log = { info: vi.fn(), error: vi.fn() }
+const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() }
 
 const mockAccount = {
   id: 'acc-1',
@@ -105,6 +105,7 @@ describe('publishPost', () => {
       where: { id: 'post-3' },
       data: { status: 'FAILED', errorMessage: 'Video processing timed out' },
     })
+    expect(metaService.getContainerStatus).toHaveBeenCalledTimes(10)
   })
 
   it('skips silently when post not found', async () => {
@@ -142,6 +143,29 @@ describe('publishPost', () => {
     expect(mockPrismaUpdate).toHaveBeenCalledWith({
       where: { id: 'post-6' },
       data: { status: 'FAILED', errorMessage: 'Meta API error' },
+    })
+  })
+
+  it('sets FAILED and rethrows when video container enters ERROR state', async () => {
+    const post = {
+      id: 'post-7',
+      caption: 'Error video',
+      mediaUrl: 'https://cdn.example.com/err.mp4',
+      status: 'SCHEDULED',
+      socialAccount: mockAccount,
+    }
+    mockPrismaFindUnique.mockResolvedValueOnce(post)
+    metaService.createVideoContainer.mockResolvedValueOnce('container-7')
+    metaService.getContainerStatus.mockResolvedValue('ERROR')
+
+    await expect(
+      publishPost({ data: { postId: 'post-7' } }, prisma, log, { pollIntervalMs: 0 }),
+    ).rejects.toThrow('Video container processing failed')
+
+    expect(metaService.getContainerStatus).toHaveBeenCalledTimes(1)
+    expect(mockPrismaUpdate).toHaveBeenCalledWith({
+      where: { id: 'post-7' },
+      data: { status: 'FAILED', errorMessage: 'Video container processing failed' },
     })
   })
 })
