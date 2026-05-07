@@ -1,7 +1,8 @@
+import fp from 'fastify-plugin'
 import { verifyToken } from '@clerk/backend'
 import { config } from '../config.js'
 
-export default async function clerkPlugin(fastify) {
+async function clerkPlugin(fastify) {
   fastify.addHook('onRequest', async (request, reply) => {
     const authHeader = request.headers.authorization
 
@@ -21,3 +22,5 @@ export default async function clerkPlugin(fastify) {
     }
   })
 }
+
+export default fp(clerkPlugin, { name: 'clerk' })

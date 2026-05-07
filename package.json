@@ -20,7 +20,8 @@
     "bullmq": "^5.53.0",
     "fastify": "^5.3.2",
     "fastify-plugin": "^5.0.1",
-    "ioredis": "^5.6.0"
+    "ioredis": "^5.6.0",
+    "svix": "^1.92.2"
   },
   "devDependencies": {
     "eslint": "^9.25.1",
@@ -29,6 +30,11 @@
     "vitest": "^3.1.2"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@prisma/client", "prisma", "@prisma/engines", "esbuild"]
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "prisma",
+      "@prisma/engines",
+      "esbuild"
+    ]
   }
 }
