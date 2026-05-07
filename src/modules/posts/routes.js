@@ -30,11 +30,8 @@ export default async function postRoutes(fastify) {
       return reply.code(400).send({ error: 'scheduledAt must be in the future' })
     }
 
-    const user = await fastify.prisma.user.findUnique({ where: { clerkId: request.auth.userId } })
-    if (!user) return reply.code(404).send({ error: 'User not found' })
-
     const account = await fastify.prisma.socialAccount.findFirst({
-      where: { id: socialAccountId, userId: user.id },
+      where: { id: socialAccountId, user: { clerkId: request.auth.userId } },
     })
     if (!account) return reply.code(404).send({ error: 'Account not found' })
 
@@ -42,7 +39,14 @@ export default async function postRoutes(fastify) {
       data: { socialAccountId, caption, mediaUrl, scheduledAt: new Date(scheduledAt), status: 'SCHEDULED' },
     })
 
-    const bullJobId = await scheduleService.createJob(post.id, scheduledAt)
+    let bullJobId
+    try {
+      bullJobId = await scheduleService.createJob(post.id, scheduledAt)
+    } catch (err) {
+      await fastify.prisma.scheduledPost.delete({ where: { id: post.id } })
+      return reply.code(500).send({ error: 'Failed to schedule post' })
+    }
+
     const updated = await fastify.prisma.scheduledPost.update({
       where: { id: post.id },
       data: { bullJobId },
@@ -55,11 +59,8 @@ export default async function postRoutes(fastify) {
     const { socialAccountId } = request.query
     if (!socialAccountId) return reply.code(400).send({ error: 'socialAccountId is required' })
 
-    const user = await fastify.prisma.user.findUnique({ where: { clerkId: request.auth.userId } })
-    if (!user) return reply.code(404).send({ error: 'User not found' })
-
     const account = await fastify.prisma.socialAccount.findFirst({
-      where: { id: socialAccountId, userId: user.id },
+      where: { id: socialAccountId, user: { clerkId: request.auth.userId } },
     })
     if (!account) return reply.code(404).send({ error: 'Account not found' })
 
@@ -70,11 +71,8 @@ export default async function postRoutes(fastify) {
   })
 
   fastify.patch('/posts/:id', async (request, reply) => {
-    const user = await fastify.prisma.user.findUnique({ where: { clerkId: request.auth.userId } })
-    if (!user) return reply.code(404).send({ error: 'User not found' })
-
     const post = await fastify.prisma.scheduledPost.findFirst({
-      where: { id: request.params.id, socialAccount: { userId: user.id } },
+      where: { id: request.params.id, socialAccount: { user: { clerkId: request.auth.userId } } },
     })
     if (!post) return reply.code(404).send({ error: 'Post not found' })
 
@@ -100,16 +98,15 @@ export default async function postRoutes(fastify) {
   })
 
   fastify.delete('/posts/:id', async (request, reply) => {
-    const user = await fastify.prisma.user.findUnique({ where: { clerkId: request.auth.userId } })
-    if (!user) return reply.code(404).send({ error: 'User not found' })
-
     const post = await fastify.prisma.scheduledPost.findFirst({
-      where: { id: request.params.id, socialAccount: { userId: user.id } },
+      where: { id: request.params.id, socialAccount: { user: { clerkId: request.auth.userId } } },
     })
     if (!post) return reply.code(404).send({ error: 'Post not found' })
 
-    await scheduleService.cancelJob(post.bullJobId)
-    await fastify.prisma.scheduledPost.delete({ where: { id: post.id } })
+    await Promise.all([
+      scheduleService.cancelJob(post.bullJobId),
+      fastify.prisma.scheduledPost.delete({ where: { id: post.id } }),
+    ])
     return reply.code(204).send()
   })
 }

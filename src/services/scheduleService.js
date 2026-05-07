@@ -15,7 +15,6 @@ export function createScheduleService(queue) {
       await existing.remove()
       return createJob(existing.data.postId, scheduledAt)
     }
-    // Old job already ran or was removed; create fresh job if postId provided
     if (postId) return createJob(postId, scheduledAt)
     throw new Error(`Job ${bullJobId} not found`)
   }

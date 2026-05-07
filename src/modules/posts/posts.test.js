@@ -118,7 +118,6 @@ describe('POST /posts', () => {
   beforeAll(async () => { fastify = await build({ logger: false }); await fastify.ready() })
   afterAll(() => fastify.close())
   beforeEach(() => {
-    prismaUserFindUnique.mockReset()
     prismaSocialAccountFindFirst.mockReset()
     prismaScheduledPostCreate.mockReset()
     prismaScheduledPostUpdate.mockReset()
@@ -142,7 +141,6 @@ describe('POST /posts', () => {
   })
 
   it('creates post, enqueues job, stores bullJobId, returns 201', async () => {
-    prismaUserFindUnique.mockResolvedValueOnce({ id: 'user-1' })
     prismaSocialAccountFindFirst.mockResolvedValueOnce({ id: 'acc-1', userId: 'user-1' })
     const createdPost = { id: 'post-1', socialAccountId: 'acc-1', caption: 'Hi', status: 'SCHEDULED', bullJobId: null }
     prismaScheduledPostCreate.mockResolvedValueOnce(createdPost)
@@ -166,7 +164,6 @@ describe('POST /posts', () => {
   })
 
   it('returns 404 when socialAccount belongs to another user', async () => {
-    prismaUserFindUnique.mockResolvedValueOnce({ id: 'user-1' })
     prismaSocialAccountFindFirst.mockResolvedValueOnce(null)
 
     const res = await fastify.inject({
@@ -184,7 +181,6 @@ describe('GET /posts', () => {
   beforeAll(async () => { fastify = await build({ logger: false }); await fastify.ready() })
   afterAll(() => fastify.close())
   beforeEach(() => {
-    prismaUserFindUnique.mockReset()
     prismaSocialAccountFindFirst.mockReset()
     prismaScheduledPostFindMany.mockReset()
   })
@@ -195,7 +191,6 @@ describe('GET /posts', () => {
   })
 
   it('returns posts list for own account', async () => {
-    prismaUserFindUnique.mockResolvedValueOnce({ id: 'user-1' })
     prismaSocialAccountFindFirst.mockResolvedValueOnce({ id: 'acc-1' })
     prismaScheduledPostFindMany.mockResolvedValueOnce([
       { id: 'post-1', caption: 'Hello', status: 'SCHEDULED' },
@@ -214,7 +209,6 @@ describe('GET /posts', () => {
   })
 
   it('returns 404 for another user\'s account', async () => {
-    prismaUserFindUnique.mockResolvedValueOnce({ id: 'user-1' })
     prismaSocialAccountFindFirst.mockResolvedValueOnce(null)
 
     const res = await fastify.inject({
@@ -231,7 +225,6 @@ describe('PATCH /posts/:id', () => {
   beforeAll(async () => { fastify = await build({ logger: false }); await fastify.ready() })
   afterAll(() => fastify.close())
   beforeEach(() => {
-    prismaUserFindUnique.mockReset()
     prismaScheduledPostFindFirst.mockReset()
     prismaScheduledPostUpdate.mockReset()
     mockQueueGetJob.mockReset()
@@ -244,7 +237,6 @@ describe('PATCH /posts/:id', () => {
   })
 
   it('returns 404 for another user\'s post', async () => {
-    prismaUserFindUnique.mockResolvedValueOnce({ id: 'user-1' })
     prismaScheduledPostFindFirst.mockResolvedValueOnce(null)
 
     const res = await fastify.inject({
@@ -257,7 +249,6 @@ describe('PATCH /posts/:id', () => {
   })
 
   it('returns 400 when editing a published post', async () => {
-    prismaUserFindUnique.mockResolvedValueOnce({ id: 'user-1' })
     prismaScheduledPostFindFirst.mockResolvedValueOnce({ id: 'post-1', status: 'PUBLISHED', bullJobId: 'job-1' })
 
     const res = await fastify.inject({
@@ -271,7 +262,6 @@ describe('PATCH /posts/:id', () => {
   })
 
   it('updates caption without touching the BullMQ job', async () => {
-    prismaUserFindUnique.mockResolvedValueOnce({ id: 'user-1' })
     prismaScheduledPostFindFirst.mockResolvedValueOnce({ id: 'post-1', status: 'SCHEDULED', bullJobId: 'job-1' })
     prismaScheduledPostUpdate.mockResolvedValueOnce({ id: 'post-1', caption: 'Updated' })
 
@@ -290,7 +280,6 @@ describe('PATCH /posts/:id', () => {
   })
 
   it('reschedules BullMQ job when scheduledAt changes', async () => {
-    prismaUserFindUnique.mockResolvedValueOnce({ id: 'user-1' })
     prismaScheduledPostFindFirst.mockResolvedValueOnce({ id: 'post-1', status: 'SCHEDULED', bullJobId: 'old-job' })
     const existingJob = { id: 'old-job', data: { postId: 'post-1' }, remove: mockJobRemove }
     mockQueueGetJob.mockResolvedValueOnce(existingJob)
@@ -318,7 +307,6 @@ describe('DELETE /posts/:id', () => {
   beforeAll(async () => { fastify = await build({ logger: false }); await fastify.ready() })
   afterAll(() => fastify.close())
   beforeEach(() => {
-    prismaUserFindUnique.mockReset()
     prismaScheduledPostFindFirst.mockReset()
     prismaScheduledPostDelete.mockReset()
     mockQueueGetJob.mockReset()
@@ -330,7 +318,6 @@ describe('DELETE /posts/:id', () => {
   })
 
   it('returns 404 for another user\'s post', async () => {
-    prismaUserFindUnique.mockResolvedValueOnce({ id: 'user-1' })
     prismaScheduledPostFindFirst.mockResolvedValueOnce(null)
 
     const res = await fastify.inject({
@@ -342,7 +329,6 @@ describe('DELETE /posts/:id', () => {
   })
 
   it('cancels BullMQ job, deletes post, returns 204', async () => {
-    prismaUserFindUnique.mockResolvedValueOnce({ id: 'user-1' })
     prismaScheduledPostFindFirst.mockResolvedValueOnce({ id: 'post-1', bullJobId: 'job-1' })
     const job = { remove: mockJobRemove }
     mockQueueGetJob.mockResolvedValueOnce(job)
