@@ -10,6 +10,7 @@ import accountRoutes from './modules/accounts/routes.js'
 import postRoutes from './modules/posts/routes.js'
 import { createTokenRefreshQueue } from './queues/tokenRefreshQueue.js'
 import { createTokenRefreshWorker, scheduleTokenRefreshJob } from './workers/tokenRefreshWorker.js'
+import { createPostWorker } from './workers/postWorker.js'
 
 export async function build({ logger: loggerOpt, ...rest } = {}) {
   const fastify = Fastify({
@@ -52,9 +53,12 @@ export async function start() {
   )
   await scheduleTokenRefreshJob(tokenRefreshQueue)
 
+  const postWorker = createPostWorker(fastify.redisWorker, fastify.prisma, fastify.log)
+
   fastify.addHook('onClose', async () => {
     await tokenRefreshWorker.close()
     await tokenRefreshQueue.close()
+    await postWorker.close()
   })
 
   await fastify.listen({ port: config.PORT, host: '0.0.0.0' })
