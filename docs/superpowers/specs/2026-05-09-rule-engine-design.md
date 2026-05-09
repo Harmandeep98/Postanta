@@ -167,9 +167,8 @@ The `instagramUserId` for COMMENT events is `event.commenterId`; for DM events i
 `src/workers/automationWorker.js` — concurrency: 10
 
 ```
-1. Fetch SocialAccount (accessToken) and call metaService.getUserProfile(instagramUserId, accessToken)
-   → run both in Promise.all (independent)
-2. Extract first_name from profile response
+1. Fetch SocialAccount by socialAccountId → get accessToken
+2. Call metaService.getUserProfile(instagramUserId, accessToken) → extract first_name
 3. Substitute {{first_name}} in messageTemplate
 4. Execute action:
    - SEND_DM       → metaService.sendDm(instagramUserId, message, accessToken)
