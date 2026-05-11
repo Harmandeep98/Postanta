@@ -143,6 +143,17 @@ describe('POST /automations', () => {
     expect(res.json().error).toMatch(/REPLY_DM/)
   })
 
+  it('returns 400 when required fields are missing', async () => {
+    const res = await fastify.inject({
+      method: 'POST',
+      url: '/automations',
+      headers: AUTH_HEADER,
+      body: { socialAccountId: 'acc-1' }, // missing triggerType, triggerKeyword, etc.
+    })
+    expect(res.statusCode).toBe(400)
+    expect(res.json().error).toMatch(/Missing required fields/)
+  })
+
   it('sets postId to null when triggerType is DM_KEYWORD', async () => {
     prismaSocialAccountFindFirst.mockResolvedValueOnce({ id: 'acc-1' })
     prismaAutomationRuleCreate.mockResolvedValueOnce({ ...mockRule, triggerType: 'DM_KEYWORD', actionType: 'SEND_DM' })

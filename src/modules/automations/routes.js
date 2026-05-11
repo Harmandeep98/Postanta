@@ -13,6 +13,10 @@ export default async function automationRoutes(fastify) {
       isActive = true,
     } = request.body
 
+    if (!socialAccountId || !triggerType || !triggerKeyword || !matchType || !actionType || !messageTemplate) {
+      return reply.code(400).send({ error: 'Missing required fields' })
+    }
+
     if (actionType === 'REPLY_COMMENT' && triggerType !== 'COMMENT_KEYWORD') {
       return reply.code(400).send({ error: 'REPLY_COMMENT requires triggerType COMMENT_KEYWORD' })
     }
