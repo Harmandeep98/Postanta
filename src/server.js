@@ -13,6 +13,7 @@ import automationRoutes from './modules/automations/routes.js'
 import { createTokenRefreshQueue } from './queues/tokenRefreshQueue.js'
 import { createTokenRefreshWorker, scheduleTokenRefreshJob } from './workers/tokenRefreshWorker.js'
 import { createPostWorker } from './workers/postWorker.js'
+import { createAutomationWorker } from './workers/automationWorker.js'
 
 export async function build({ logger: loggerOpt, ...rest } = {}) {
   const fastify = Fastify({
@@ -58,11 +59,13 @@ export async function start() {
   await scheduleTokenRefreshJob(tokenRefreshQueue)
 
   const postWorker = createPostWorker(fastify.redisWorker, fastify.prisma, fastify.log)
+  const automationWorker = createAutomationWorker(fastify.redisWorker, fastify.prisma, fastify.log)
 
   fastify.addHook('onClose', async () => {
     await Promise.all([
       tokenRefreshWorker.close(),
       postWorker.close(),
+      automationWorker.close(),
     ])
     await tokenRefreshQueue.close()
   })
