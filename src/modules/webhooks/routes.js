@@ -42,7 +42,7 @@ export default async function webhookRoutes(fastify) {
 
       const payload = JSON.parse(request.body)
 
-      await Promise.all(
+      Promise.all(
         (payload.entry ?? []).map(async (entry) => {
           const account = await instance.prisma.socialAccount.findFirst({
             where: { instagramAccountId: entry.id },
@@ -78,7 +78,7 @@ export default async function webhookRoutes(fastify) {
 
           await Promise.all(events.map((e) => ruleEngineService.evaluate(e)))
         }),
-      )
+      ).catch((err) => fastify.log.error({ err: err.message }, 'webhook processing error'))
 
       return reply.code(200).send()
     })
