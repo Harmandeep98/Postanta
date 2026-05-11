@@ -8,9 +8,12 @@ import healthRoutes from './modules/health/routes.js'
 import { authPublicRoutes, authProtectedRoutes } from './modules/auth/routes.js'
 import accountRoutes from './modules/accounts/routes.js'
 import postRoutes from './modules/posts/routes.js'
+import webhookRoutes from './modules/webhooks/routes.js'
+import automationRoutes from './modules/automations/routes.js'
 import { createTokenRefreshQueue } from './queues/tokenRefreshQueue.js'
 import { createTokenRefreshWorker, scheduleTokenRefreshJob } from './workers/tokenRefreshWorker.js'
 import { createPostWorker } from './workers/postWorker.js'
+import { createAutomationWorker } from './workers/automationWorker.js'
 
 export async function build({ logger: loggerOpt, ...rest } = {}) {
   const fastify = Fastify({
@@ -30,6 +33,7 @@ export async function build({ logger: loggerOpt, ...rest } = {}) {
   // Unprotected routes
   await fastify.register(healthRoutes)
   await fastify.register(authPublicRoutes)
+  await fastify.register(webhookRoutes)
 
   // Protected scope — clerk onRequest hook applies only inside this child scope
   await fastify.register(async (protectedApp) => {
@@ -37,6 +41,7 @@ export async function build({ logger: loggerOpt, ...rest } = {}) {
     await protectedApp.register(authProtectedRoutes)
     await protectedApp.register(accountRoutes)
     await protectedApp.register(postRoutes)
+    await protectedApp.register(automationRoutes)
   })
 
   return fastify
@@ -54,11 +59,13 @@ export async function start() {
   await scheduleTokenRefreshJob(tokenRefreshQueue)
 
   const postWorker = createPostWorker(fastify.redisWorker, fastify.prisma, fastify.log)
+  const automationWorker = createAutomationWorker(fastify.redisWorker, fastify.prisma, fastify.log)
 
   fastify.addHook('onClose', async () => {
     await Promise.all([
       tokenRefreshWorker.close(),
       postWorker.close(),
+      automationWorker.close(),
     ])
     await tokenRefreshQueue.close()
   })
