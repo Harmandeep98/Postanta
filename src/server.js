@@ -8,6 +8,7 @@ import healthRoutes from './modules/health/routes.js'
 import { authPublicRoutes, authProtectedRoutes } from './modules/auth/routes.js'
 import accountRoutes from './modules/accounts/routes.js'
 import postRoutes from './modules/posts/routes.js'
+import webhookRoutes from './modules/webhooks/routes.js'
 import { createTokenRefreshQueue } from './queues/tokenRefreshQueue.js'
 import { createTokenRefreshWorker, scheduleTokenRefreshJob } from './workers/tokenRefreshWorker.js'
 import { createPostWorker } from './workers/postWorker.js'
@@ -30,6 +31,7 @@ export async function build({ logger: loggerOpt, ...rest } = {}) {
   // Unprotected routes
   await fastify.register(healthRoutes)
   await fastify.register(authPublicRoutes)
+  await fastify.register(webhookRoutes)
 
   // Protected scope — clerk onRequest hook applies only inside this child scope
   await fastify.register(async (protectedApp) => {
