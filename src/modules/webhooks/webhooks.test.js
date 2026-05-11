@@ -181,4 +181,16 @@ describe('POST /webhooks/meta', () => {
     expect(res.statusCode).toBe(200)
     expect(mockEvaluate).not.toHaveBeenCalled()
   })
+
+  it('returns 400 when body passes HMAC but is not valid JSON', async () => {
+    const body = 'not-json'
+    const res = await fastify.inject({
+      method: 'POST',
+      url: '/webhooks/meta',
+      headers: { 'x-hub-signature-256': sign(body), 'content-type': 'application/json' },
+      payload: body,
+    })
+    expect(res.statusCode).toBe(400)
+    expect(mockEvaluate).not.toHaveBeenCalled()
+  })
 })

@@ -36,11 +36,24 @@ export default async function webhookRoutes(fastify) {
           .createHmac('sha256', config.META_WEBHOOK_SECRET)
           .update(request.body)
           .digest('hex')
-      if (sig !== expected) {
+      const sigBuf = Buffer.from(sig ?? '', 'utf8')
+      const expectedBuf = Buffer.from(expected, 'utf8')
+      if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) {
         return reply.code(403).send({ error: 'Forbidden' })
       }
 
-      const payload = JSON.parse(request.body)
+      let payload
+      try {
+        payload = JSON.parse(request.body)
+      } catch {
+        request.log.warn({ bodyBytes: request.body?.length }, 'webhook payload is not valid JSON')
+        return reply.code(400).send({ error: 'Bad Request' })
+      }
+
+      request.log.info(
+        { bodyBytes: request.body.length, entryCount: payload.entry?.length ?? 0 },
+        'webhook received',
+      )
 
       Promise.all(
         (payload.entry ?? []).map(async (entry) => {
@@ -78,7 +91,7 @@ export default async function webhookRoutes(fastify) {
 
           await Promise.all(events.map((e) => ruleEngineService.evaluate(e)))
         }),
-      ).catch((err) => fastify.log.error({ err: err.message }, 'webhook processing error'))
+      ).catch((err) => fastify.log.error({ err }, 'webhook processing error'))
 
       return reply.code(200).send()
     })
