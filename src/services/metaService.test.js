@@ -21,6 +21,10 @@ const {
   createVideoContainer,
   getContainerStatus,
   publishContainer,
+  getUserProfile,
+  sendDm,
+  replyToComment,
+  replyInThread,
 } = await import('./metaService.js')
 
 describe('exchangeCodeForShortLivedToken', () => {
@@ -228,5 +232,94 @@ describe('publishContainer', () => {
     expect(opts?.method).toBe('POST')
     expect(url.toString()).toContain('/ig-123/media_publish')
     expect(url.toString()).toContain('creation_id=container-1')
+  })
+})
+
+describe('getUserProfile', () => {
+  beforeEach(() => fetchMock.mockReset())
+
+  it('returns name and first_name (first word of name)', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ name: 'Jane Doe' }),
+    })
+    const result = await getUserProfile('ig-user-123', 'token-abc')
+    expect(result).toEqual({ name: 'Jane Doe', first_name: 'Jane' })
+    const [url] = fetchMock.mock.calls[0]
+    expect(url.toString()).toContain('/ig-user-123')
+    expect(url.toString()).toContain('fields=name')
+  })
+
+  it('falls back to "there" when name is empty', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ name: '' }),
+    })
+    const result = await getUserProfile('ig-user-123', 'token-abc')
+    expect(result.first_name).toBe('there')
+  })
+})
+
+describe('sendDm', () => {
+  beforeEach(() => fetchMock.mockReset())
+
+  it('POSTs to /me/messages with recipient and message body', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ recipient_id: 'ig-user-123', message_id: 'msg-1' }),
+    })
+    await sendDm('ig-user-123', 'Hello Jane!', 'token-abc')
+    const [url, opts] = fetchMock.mock.calls[0]
+    expect(opts.method).toBe('POST')
+    expect(url.toString()).toContain('/me/messages')
+    expect(JSON.parse(opts.body)).toEqual({ recipient: { id: 'ig-user-123' }, message: { text: 'Hello Jane!' } })
+  })
+})
+
+describe('replyToComment', () => {
+  beforeEach(() => fetchMock.mockReset())
+
+  it('POSTs to /{commentId}/replies with message body', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: 'reply-1' }),
+    })
+    await replyToComment('comment-1', 'Thanks!', 'token-abc')
+    const [url, opts] = fetchMock.mock.calls[0]
+    expect(opts.method).toBe('POST')
+    expect(url.toString()).toContain('/comment-1/replies')
+    expect(JSON.parse(opts.body)).toEqual({ message: 'Thanks!' })
+  })
+})
+
+describe('replyInThread', () => {
+  beforeEach(() => fetchMock.mockReset())
+
+  it('POSTs to /me/messages with threadId as recipient', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ recipient_id: 'thread-1', message_id: 'msg-2' }),
+    })
+    await replyInThread('thread-1', 'Got it!', 'token-abc')
+    const [url, opts] = fetchMock.mock.calls[0]
+    expect(opts.method).toBe('POST')
+    expect(url.toString()).toContain('/me/messages')
+    expect(JSON.parse(opts.body)).toEqual({ recipient: { id: 'thread-1' }, message: { text: 'Got it!' } })
+  })
+})
+
+describe('graphFetch error status', () => {
+  beforeEach(() => fetchMock.mockReset())
+
+  it('attaches HTTP status code to thrown error', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+      json: () => Promise.resolve({ error: { message: 'User blocked' } }),
+    })
+    let caught
+    try { await getUserProfile('bad', 'token') } catch (err) { caught = err }
+    expect(caught.message).toBe('User blocked')
+    expect(caught.status).toBe(403)
   })
 })

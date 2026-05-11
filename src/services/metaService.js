@@ -10,7 +10,9 @@ async function graphFetch(url, options = {}) {
       const data = await res.json()
       message = data.error?.message ?? message
     } catch {}
-    throw new Error(message)
+    const err = new Error(message)
+    err.status = res.status
+    throw err
   }
   const data = await res.json()
   if (data.error) throw new Error(data.error.message)
@@ -116,4 +118,45 @@ export async function publishContainer(instagramAccountId, accessToken, containe
   url.searchParams.set('creation_id', containerId)
   const data = await graphFetch(url, { method: 'POST' })
   return data.id
+}
+
+export async function getUserProfile(instagramUserId, accessToken) {
+  const url = new URL(`${GRAPH_URL}/${instagramUserId}`)
+  url.searchParams.set('fields', 'name')
+  url.searchParams.set('access_token', accessToken)
+  const data = await graphFetch(url)
+  const name = data.name ?? ''
+  const first_name = name.split(' ')[0] || 'there'
+  return { name, first_name }
+}
+
+export async function sendDm(recipientId, message, accessToken) {
+  const url = new URL(`${GRAPH_URL}/me/messages`)
+  url.searchParams.set('access_token', accessToken)
+  return graphFetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ recipient: { id: recipientId }, message: { text: message } }),
+  })
+}
+
+export async function replyToComment(commentId, message, accessToken) {
+  const url = new URL(`${GRAPH_URL}/${commentId}/replies`)
+  url.searchParams.set('access_token', accessToken)
+  return graphFetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message }),
+  })
+}
+
+// Meta Messaging API uses recipient.id as the thread identifier for in-thread replies
+export async function replyInThread(threadId, message, accessToken) {
+  const url = new URL(`${GRAPH_URL}/me/messages`)
+  url.searchParams.set('access_token', accessToken)
+  return graphFetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ recipient: { id: threadId }, message: { text: message } }),
+  })
 }
