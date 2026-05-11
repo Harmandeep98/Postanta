@@ -9,6 +9,7 @@ import { authPublicRoutes, authProtectedRoutes } from './modules/auth/routes.js'
 import accountRoutes from './modules/accounts/routes.js'
 import postRoutes from './modules/posts/routes.js'
 import webhookRoutes from './modules/webhooks/routes.js'
+import automationRoutes from './modules/automations/routes.js'
 import { createTokenRefreshQueue } from './queues/tokenRefreshQueue.js'
 import { createTokenRefreshWorker, scheduleTokenRefreshJob } from './workers/tokenRefreshWorker.js'
 import { createPostWorker } from './workers/postWorker.js'
@@ -39,6 +40,7 @@ export async function build({ logger: loggerOpt, ...rest } = {}) {
     await protectedApp.register(authProtectedRoutes)
     await protectedApp.register(accountRoutes)
     await protectedApp.register(postRoutes)
+    await protectedApp.register(automationRoutes)
   })
 
   return fastify
