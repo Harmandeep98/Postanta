@@ -120,6 +120,16 @@ describe('executeAutomation', () => {
       'automation job failed',
     )
   })
+
+  it('returns early with warn log when socialAccount is not found', async () => {
+    mockSocialAccountFindUnique.mockResolvedValueOnce(null)
+    await expect(executeAutomation(baseJob, prisma, log)).resolves.toBeUndefined()
+    expect(metaService.getUserProfile).not.toHaveBeenCalled()
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ socialAccountId: 'acc-1' }),
+      'socialAccount not found, skipping',
+    )
+  })
 })
 
 describe('createAutomationWorker failed event handler', () => {

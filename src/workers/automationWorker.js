@@ -8,10 +8,14 @@ function renderTemplate(template, firstName) {
 export async function executeAutomation(job, prisma, log) {
   const { ruleId, actionType, instagramUserId, socialAccountId, messageTemplate, commentId, threadId } = job.data
 
-  const account = await prisma.socialAccount.findUnique({ where: { id: socialAccountId } })
-  const { accessToken } = account
-
   try {
+    const account = await prisma.socialAccount.findUnique({ where: { id: socialAccountId } })
+    if (!account) {
+      log.warn({ ruleId, jobId: job.id, socialAccountId }, 'socialAccount not found, skipping')
+      return
+    }
+    const { accessToken } = account
+
     const { first_name } = await metaService.getUserProfile(instagramUserId, accessToken)
     const message = renderTemplate(messageTemplate, first_name)
 
