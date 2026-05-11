@@ -43,7 +43,7 @@ export function createRuleEngineService(queue, prisma, log) {
 
           if (existing) {
             await prisma.ruleExecutionLog.create({
-              data: { ruleId: rule.id, instagramUserId, triggerPayload: event, outcome: 'SKIPPED_ONCE_PER_USER' },
+              data: { ruleId: rule.id, instagramUserId, triggerPayload: { ...event, text: undefined }, outcome: 'SKIPPED_ONCE_PER_USER' },
             })
             log.warn({ ruleId: rule.id, instagramUserId }, 'skipped: once per user')
             return null
@@ -51,7 +51,7 @@ export function createRuleEngineService(queue, prisma, log) {
 
           if (recent) {
             await prisma.ruleExecutionLog.create({
-              data: { ruleId: rule.id, instagramUserId, triggerPayload: event, outcome: 'SKIPPED_COOLDOWN' },
+              data: { ruleId: rule.id, instagramUserId, triggerPayload: { ...event, text: undefined }, outcome: 'SKIPPED_COOLDOWN' },
             })
             log.warn({ ruleId: rule.id, instagramUserId }, 'skipped: cooldown')
             return null
