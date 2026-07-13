@@ -1,12 +1,11 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
-import swagger from '@fastify/swagger'
-import scalarApiReference from '@scalar/fastify-api-reference'
 import { config } from './config.js'
 import prismaPlugin from './plugins/prisma.js'
 import redisPlugin from './plugins/redis.js'
 import clerkPlugin from './plugins/clerk.js'
 import healthRoutes from './modules/health/routes.js'
+import docsRoutes from './modules/docs/routes.js'
 import { authPublicRoutes, authProtectedRoutes } from './modules/auth/routes.js'
 import accountRoutes from './modules/accounts/routes.js'
 import postRoutes from './modules/posts/routes.js'
@@ -29,35 +28,12 @@ export async function build({ logger: loggerOpt, ...rest } = {}) {
   })
 
   await fastify.register(cors)
-  await fastify.register(swagger, {
-    openapi: {
-      openapi: '3.0.0',
-      info: {
-        title: 'Social Media Manager API',
-        description: 'Backend API for Instagram automation and scheduled posts.',
-        version: '1.0.0',
-      },
-      components: {
-        securitySchemes: {
-          bearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
-            description: 'Clerk JWT — Clerk Dashboard → Users → Create session token',
-          },
-        },
-      },
-    },
-  })
-  await fastify.register(scalarApiReference, {
-    routePrefix: '/docs',
-    configuration: { theme: 'purple', title: 'Social Media Manager API' },
-  })
   await fastify.register(prismaPlugin)
   await fastify.register(redisPlugin)
 
   // Unprotected routes
   await fastify.register(healthRoutes)
+  await fastify.register(docsRoutes)
   await fastify.register(authPublicRoutes)
   await fastify.register(webhookRoutes)
 
