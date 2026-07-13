@@ -1,0 +1,234 @@
+{
+  "info": {
+    "name": "Social Media Manager",
+    "description": "API collection for the Social Media Manager backend. Set `authToken` and `socialAccountId` variables before using protected endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "authToken", "value": "", "type": "string", "description": "Clerk JWT — get from Clerk Dashboard or your frontend after sign-in" },
+    { "key": "socialAccountId", "value": "", "type": "string", "description": "ID from GET /accounts response" },
+    { "key": "postId", "value": "", "type": "string" },
+    { "key": "ruleId", "value": "", "type": "string" },
+    { "key": "accountId", "value": "", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{authToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "GET /auth/instagram — Initiate OAuth",
+          "request": {
+            "method": "GET",
+            "description": "Redirects to Meta OAuth consent page. Run this in a browser, not Postman.",
+            "url": { "raw": "{{baseUrl}}/auth/instagram", "host": ["{{baseUrl}}"], "path": ["auth", "instagram"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accounts",
+      "item": [
+        {
+          "name": "GET /accounts — List connected accounts",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/accounts", "host": ["{{baseUrl}}"], "path": ["accounts"] }
+          }
+        },
+        {
+          "name": "DELETE /accounts/:id — Disconnect account",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "POST /posts — Schedule a post",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"socialAccountId\": \"{{socialAccountId}}\",\n  \"caption\": \"Hello world! #instagram\",\n  \"mediaUrl\": \"https://your-s3-bucket.s3.amazonaws.com/image.jpg\",\n  \"scheduledAt\": \"2026-07-01T10:00:00.000Z\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/posts", "host": ["{{baseUrl}}"], "path": ["posts"] }
+          }
+        },
+        {
+          "name": "GET /posts — List posts for account",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/posts?socialAccountId={{socialAccountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts"],
+              "query": [{ "key": "socialAccountId", "value": "{{socialAccountId}}" }]
+            }
+          }
+        },
+        {
+          "name": "PATCH /posts/:id — Edit or reschedule",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caption\": \"Updated caption!\",\n  \"scheduledAt\": \"2026-08-01T10:00:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/posts/{{postId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "{{postId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /posts/:id — Cancel post",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/posts/{{postId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "{{postId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Media",
+      "item": [
+        {
+          "name": "GET /media/upload-url — Get S3 presigned URL",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/media/upload-url?contentType=image/jpeg",
+              "host": ["{{baseUrl}}"],
+              "path": ["media", "upload-url"],
+              "query": [{ "key": "contentType", "value": "image/jpeg" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Automations",
+      "item": [
+        {
+          "name": "POST /automations — Create rule (Comment → DM)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"socialAccountId\": \"{{socialAccountId}}\",\n  \"triggerType\": \"COMMENT_KEYWORD\",\n  \"triggerKeyword\": \"price\",\n  \"matchType\": \"CONTAINS\",\n  \"actionType\": \"SEND_DM\",\n  \"messageTemplate\": \"Hi {{first_name}}, here are our prices!\",\n  \"postId\": null,\n  \"replyOncePerUser\": true,\n  \"cooldownMinutes\": 60,\n  \"isActive\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/automations", "host": ["{{baseUrl}}"], "path": ["automations"] }
+          }
+        },
+        {
+          "name": "POST /automations — Create rule (Comment → Public Reply)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"socialAccountId\": \"{{socialAccountId}}\",\n  \"triggerType\": \"COMMENT_KEYWORD\",\n  \"triggerKeyword\": \"link\",\n  \"matchType\": \"CONTAINS\",\n  \"actionType\": \"REPLY_COMMENT\",\n  \"messageTemplate\": \"Check our bio for the link!\",\n  \"postId\": null,\n  \"replyOncePerUser\": false,\n  \"cooldownMinutes\": 0,\n  \"isActive\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/automations", "host": ["{{baseUrl}}"], "path": ["automations"] }
+          }
+        },
+        {
+          "name": "POST /automations — Create rule (DM Keyword → Reply DM)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"socialAccountId\": \"{{socialAccountId}}\",\n  \"triggerType\": \"DM_KEYWORD\",\n  \"triggerKeyword\": \"info\",\n  \"matchType\": \"CONTAINS\",\n  \"actionType\": \"REPLY_DM\",\n  \"messageTemplate\": \"Hi {{first_name}}, here's more info: ...\",\n  \"postId\": null,\n  \"replyOncePerUser\": true,\n  \"cooldownMinutes\": 30,\n  \"isActive\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/automations", "host": ["{{baseUrl}}"], "path": ["automations"] }
+          }
+        },
+        {
+          "name": "GET /automations — List rules",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/automations?socialAccountId={{socialAccountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["automations"],
+              "query": [{ "key": "socialAccountId", "value": "{{socialAccountId}}" }]
+            }
+          }
+        },
+        {
+          "name": "GET /automations/:id — Get one rule",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/automations/{{ruleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["automations", "{{ruleId}}"]
+            }
+          }
+        },
+        {
+          "name": "PATCH /automations/:id — Update rule",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false,\n  \"cooldownMinutes\": 120\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/automations/{{ruleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["automations", "{{ruleId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /automations/:id — Delete rule",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/automations/{{ruleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["automations", "{{ruleId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
