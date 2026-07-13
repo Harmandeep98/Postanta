@@ -14,9 +14,12 @@ Meta OAuth flow, token storage in `SocialAccount`, token refresh worker (BullMQ 
 ### Phase 4 — Rule Engine
 `AutomationRule` schema, `POST /webhooks/meta` (HMAC-SHA256 verified, fire-and-forget), `ruleEngineService` (keyword match + cooldown + once-per-user), `automationWorker` (concurrency: 10), automations CRUD endpoints.
 
+### Phase 5 — Dashboard API
+`GET /dashboard/analytics/rules` (per-rule trigger outcome breakdown), `GET /dashboard/queues` (live BullMQ job counts via `queueStatusService`), `GET /dashboard/rule-logs` (paginated, filterable `RuleExecutionLog` viewer, never exposes `triggerPayload`).
+
 ---
 
 ## Up Next
 
-### Phase 5 — Dashboard API
-Analytics endpoints, queue status, rule execution logs.
+Nothing planned yet — open items:
+- `/health`'s queue counts are still hardcoded to zero; could reuse `queueStatusService` from Phase 5.
