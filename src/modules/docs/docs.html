@@ -258,6 +258,10 @@
       <div class="group-title">Webhooks</div>
       <li><a class="nav-link" href="#webhooks-meta-get">Meta verification</a></li>
       <li><a class="nav-link" href="#webhooks-meta-post">Meta events</a></li>
+      <div class="group-title">Dashboard</div>
+      <li><a class="nav-link" href="#get-dashboard-analytics">Rule analytics</a></li>
+      <li><a class="nav-link" href="#get-dashboard-queues">Queue status</a></li>
+      <li><a class="nav-link" href="#get-dashboard-rule-logs">Rule execution logs</a></li>
       <div class="group-title">System</div>
       <li><a class="nav-link" href="#health">Health check</a></li>
     </ul>
@@ -608,6 +612,107 @@
       </div>
 
       <p><strong>Clerk lifecycle webhook</strong> — <code class="inline">POST /webhooks/clerk</code> (internal, hidden from this reference) keeps the local <code class="inline">User</code> table in sync with Clerk's <code class="inline">user.created</code> / <code class="inline">user.deleted</code> events, verified via Svix signature headers.</p>
+    </section>
+
+    <section class="doc-section" id="dashboard">
+      <h2>Dashboard</h2>
+      <p>Read-only views over data the rule engine and BullMQ already collect.</p>
+
+      <div class="endpoint" id="get-dashboard-analytics">
+        <div class="endpoint-head">
+          <span class="method get">GET</span><span class="path">/dashboard/analytics/rules</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">Per-rule trigger outcome breakdown for an account. Every rule appears, even ones that have never fired (zero-filled counts).</p>
+        <table class="params">
+          <thead><tr><th>Param</th><th>In</th><th>Required</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">socialAccountId</code></td><td>query</td><td>yes</td><td></td></tr>
+            <tr><td><code class="inline">ruleId</code></td><td>query</td><td>no</td><td>narrow to a single rule</td></tr>
+            <tr><td><code class="inline">from</code> / <code class="inline">to</code></td><td>query</td><td>no</td><td>ISO date-time, filters <code class="inline">RuleExecutionLog.createdAt</code></td></tr>
+          </tbody>
+        </table>
+        <div class="code-block">
+          <span class="label">REQUEST</span>
+          <pre class="code"><code>curl "$BASE_URL/dashboard/analytics/rules?socialAccountId=cku1a2b3c" \
+  -H "Authorization: Bearer $TOKEN"</code></pre>
+        </div>
+        <div class="code-block">
+          <span class="label">200 RESPONSE</span>
+          <pre class="code"><code>{
+  "socialAccountId": "cku1a2b3c",
+  "from": null,
+  "to": null,
+  "rules": [
+    {
+      "ruleId": "crule001",
+      "triggerType": "COMMENT_KEYWORD",
+      "triggerKeyword": "price",
+      "actionType": "SEND_DM",
+      "isActive": true,
+      "counts": { "EXECUTED": 12, "SKIPPED_ONCE_PER_USER": 3, "SKIPPED_COOLDOWN": 1, "FAILED": 0 },
+      "total": 16
+    }
+  ]
+}</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint" id="get-dashboard-queues">
+        <div class="endpoint-head">
+          <span class="method get">GET</span><span class="path">/dashboard/queues</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">Live BullMQ job counts for all three queues (not account-scoped — this is infra-level data).</p>
+        <div class="code-block">
+          <span class="label">200 RESPONSE</span>
+          <pre class="code"><code>{
+  "automation": { "waiting": 0, "active": 1, "completed": 240, "failed": 2, "delayed": 0 },
+  "posts": { "waiting": 3, "active": 0, "completed": 58, "failed": 0, "delayed": 5 },
+  "tokenRefresh": { "waiting": 0, "active": 0, "completed": 12, "failed": 0, "delayed": 1 }
+}</code></pre>
+        </div>
+        <div class="note"><code class="inline">/health</code>'s <code class="inline">queues</code> field is still hardcoded to zero — a known gap, not yet wired to this same data.</div>
+      </div>
+
+      <div class="endpoint" id="get-dashboard-rule-logs">
+        <div class="endpoint-head">
+          <span class="method get">GET</span><span class="path">/dashboard/rule-logs</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">Paginated, filterable view over <code class="inline">RuleExecutionLog</code>. Never returns <code class="inline">triggerPayload</code> (raw webhook payload) — only safe summary fields.</p>
+        <table class="params">
+          <thead><tr><th>Param</th><th>In</th><th>Required</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">socialAccountId</code></td><td>query</td><td>yes</td><td></td></tr>
+            <tr><td><code class="inline">ruleId</code></td><td>query</td><td>no</td><td></td></tr>
+            <tr><td><code class="inline">outcome</code></td><td>query</td><td>no</td><td><code class="inline">EXECUTED</code> / <code class="inline">SKIPPED_ONCE_PER_USER</code> / <code class="inline">SKIPPED_COOLDOWN</code> / <code class="inline">FAILED</code></td></tr>
+            <tr><td><code class="inline">page</code></td><td>query</td><td>no</td><td>default 1</td></tr>
+            <tr><td><code class="inline">limit</code></td><td>query</td><td>no</td><td>default 20, max 100</td></tr>
+          </tbody>
+        </table>
+        <div class="code-block">
+          <span class="label">REQUEST</span>
+          <pre class="code"><code>curl "$BASE_URL/dashboard/rule-logs?socialAccountId=cku1a2b3c&outcome=FAILED&page=1&limit=20" \
+  -H "Authorization: Bearer $TOKEN"</code></pre>
+        </div>
+        <div class="code-block">
+          <span class="label">200 RESPONSE</span>
+          <pre class="code"><code>{
+  "data": [
+    {
+      "id": "clog001",
+      "ruleId": "crule001",
+      "instagramUserId": "17841400000000001",
+      "outcome": "FAILED",
+      "errorMessage": "Meta API 400: invalid recipient",
+      "createdAt": "2026-07-13T10:00:00.000Z"
+    }
+  ],
+  "pagination": { "page": 1, "limit": 20, "total": 57, "totalPages": 3 }
+}</code></pre>
+        </div>
+      </div>
     </section>
 
     <section class="doc-section" id="health">
