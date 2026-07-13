@@ -672,7 +672,7 @@
   "tokenRefresh": { "waiting": 0, "active": 0, "completed": 12, "failed": 0, "delayed": 1 }
 }</code></pre>
         </div>
-        <div class="note"><code class="inline">/health</code>'s <code class="inline">queues</code> field is still hardcoded to zero — a known gap, not yet wired to this same data.</div>
+        <div class="note"><code class="inline">/health</code>'s <code class="inline">queues</code> field uses this same service, summed across all three queues into a simple <code class="inline">{ pending, active, failed }</code> aggregate.</div>
       </div>
 
       <div class="endpoint" id="get-dashboard-rule-logs">
