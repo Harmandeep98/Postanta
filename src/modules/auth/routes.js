@@ -11,7 +11,13 @@ export async function authPublicRoutes(fastify) {
       (_req, body, done) => done(null, body),
     )
 
-    instance.post('/webhooks/clerk', async (request, reply) => {
+    instance.post('/webhooks/clerk', {
+      schema: {
+        tags: ['Webhooks'],
+        summary: 'Clerk user lifecycle webhook (internal)',
+        hide: true,
+      },
+    }, async (request, reply) => {
       const svixId = request.headers['svix-id']
       const svixTimestamp = request.headers['svix-timestamp']
       const svixSignature = request.headers['svix-signature']
@@ -117,7 +123,13 @@ export async function authPublicRoutes(fastify) {
 }
 
 export async function authProtectedRoutes(fastify) {
-  fastify.get('/auth/instagram', async (request, reply) => {
+  fastify.get('/auth/instagram', {
+    schema: {
+      tags: ['Auth'],
+      summary: 'Start Instagram OAuth — open in browser, not Postman',
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     const state = crypto.randomUUID()
     await fastify.redis.set(`oauth:state:${state}`, request.auth.userId, 'EX', 600)
 

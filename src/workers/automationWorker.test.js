@@ -17,7 +17,6 @@ vi.mock('bullmq', () => ({
 }))
 
 const metaService = await import('../services/metaService.js')
-const { Worker } = await import('bullmq')
 const { executeAutomation, createAutomationWorker } = await import('./automationWorker.js')
 
 const mockRuleExecutionUpsert = vi.fn().mockResolvedValue({})

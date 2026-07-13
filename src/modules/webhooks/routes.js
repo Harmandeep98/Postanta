@@ -18,7 +18,20 @@ export default async function webhookRoutes(fastify) {
       (_req, body, done) => done(null, body),
     )
 
-    instance.get('/webhooks/meta', async (request, reply) => {
+    instance.get('/webhooks/meta', {
+      schema: {
+        tags: ['Webhooks'],
+        summary: 'Meta webhook challenge verification (called by Meta, not you)',
+        querystring: {
+          type: 'object',
+          properties: {
+            'hub.mode': { type: 'string' },
+            'hub.verify_token': { type: 'string' },
+            'hub.challenge': { type: 'string' },
+          },
+        },
+      },
+    }, async (request, reply) => {
       const mode = request.query['hub.mode']
       const token = request.query['hub.verify_token']
       const challenge = request.query['hub.challenge']
@@ -28,7 +41,13 @@ export default async function webhookRoutes(fastify) {
       return reply.code(403).send({ error: 'Forbidden' })
     })
 
-    instance.post('/webhooks/meta', async (request, reply) => {
+    instance.post('/webhooks/meta', {
+      schema: {
+        tags: ['Webhooks'],
+        summary: 'Receive Meta comment/DM events (called by Meta, not you)',
+        description: 'Requires valid X-Hub-Signature-256 header. Returns 200 immediately — processing is fire-and-forget.',
+      },
+    }, async (request, reply) => {
       const sig = request.headers['x-hub-signature-256']
       const expected =
         'sha256=' +

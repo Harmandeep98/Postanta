@@ -10,7 +10,20 @@ export default async function postRoutes(fastify) {
     await queue.close()
   })
 
-  fastify.get('/media/upload-url', async (request, reply) => {
+  fastify.get('/media/upload-url', {
+    schema: {
+      tags: ['Media'],
+      summary: 'Get S3 presigned upload URL',
+      security: [{ bearerAuth: [] }],
+      querystring: {
+        type: 'object',
+        required: ['contentType'],
+        properties: {
+          contentType: { type: 'string', description: 'MIME type of the file to upload (e.g. image/jpeg, video/mp4)' },
+        },
+      },
+    },
+  }, async (request, reply) => {
     const { contentType } = request.query
     if (!contentType) return reply.code(400).send({ error: 'contentType is required' })
     try {
@@ -23,7 +36,23 @@ export default async function postRoutes(fastify) {
     }
   })
 
-  fastify.post('/posts', async (request, reply) => {
+  fastify.post('/posts', {
+    schema: {
+      tags: ['Posts'],
+      summary: 'Schedule a new post',
+      security: [{ bearerAuth: [] }],
+      body: {
+        type: 'object',
+        required: ['socialAccountId', 'scheduledAt'],
+        properties: {
+          socialAccountId: { type: 'string' },
+          caption: { type: 'string' },
+          mediaUrl: { type: 'string', description: 'Public URL of the uploaded media' },
+          scheduledAt: { type: 'string', format: 'date-time', description: 'Must be in the future' },
+        },
+      },
+    },
+  }, async (request, reply) => {
     const { socialAccountId, caption, mediaUrl, scheduledAt } = request.body
 
     if (!scheduledAt || new Date(scheduledAt) <= new Date()) {
@@ -42,7 +71,7 @@ export default async function postRoutes(fastify) {
     let bullJobId
     try {
       bullJobId = await scheduleService.createJob(post.id, scheduledAt)
-    } catch (err) {
+    } catch {
       await fastify.prisma.scheduledPost.delete({ where: { id: post.id } })
       return reply.code(500).send({ error: 'Failed to schedule post' })
     }
@@ -55,7 +84,18 @@ export default async function postRoutes(fastify) {
     return reply.code(201).send(updated)
   })
 
-  fastify.get('/posts', async (request, reply) => {
+  fastify.get('/posts', {
+    schema: {
+      tags: ['Posts'],
+      summary: 'List scheduled posts for an account',
+      security: [{ bearerAuth: [] }],
+      querystring: {
+        type: 'object',
+        required: ['socialAccountId'],
+        properties: { socialAccountId: { type: 'string' } },
+      },
+    },
+  }, async (request, reply) => {
     const { socialAccountId } = request.query
     if (!socialAccountId) return reply.code(400).send({ error: 'socialAccountId is required' })
 
@@ -70,7 +110,22 @@ export default async function postRoutes(fastify) {
     })
   })
 
-  fastify.patch('/posts/:id', async (request, reply) => {
+  fastify.patch('/posts/:id', {
+    schema: {
+      tags: ['Posts'],
+      summary: 'Edit caption or reschedule a post',
+      security: [{ bearerAuth: [] }],
+      params: { type: 'object', properties: { id: { type: 'string' } } },
+      body: {
+        type: 'object',
+        properties: {
+          caption: { type: 'string' },
+          mediaUrl: { type: 'string' },
+          scheduledAt: { type: 'string', format: 'date-time', description: 'Must be in the future' },
+        },
+      },
+    },
+  }, async (request, reply) => {
     const post = await fastify.prisma.scheduledPost.findFirst({
       where: { id: request.params.id, socialAccount: { user: { clerkId: request.auth.userId } } },
     })
@@ -107,7 +162,14 @@ export default async function postRoutes(fastify) {
     return fastify.prisma.scheduledPost.update({ where: { id: post.id }, data: updateData })
   })
 
-  fastify.delete('/posts/:id', async (request, reply) => {
+  fastify.delete('/posts/:id', {
+    schema: {
+      tags: ['Posts'],
+      summary: 'Cancel and delete a scheduled post',
+      security: [{ bearerAuth: [] }],
+      params: { type: 'object', properties: { id: { type: 'string' } } },
+    },
+  }, async (request, reply) => {
     const post = await fastify.prisma.scheduledPost.findFirst({
       where: { id: request.params.id, socialAccount: { user: { clerkId: request.auth.userId } } },
     })

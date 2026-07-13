@@ -3,6 +3,8 @@ export default async function healthRoutes(fastify) {
     '/health',
     {
       schema: {
+        tags: ['Health'],
+        summary: 'Liveness check',
         response: {
           200: {
             type: 'object',
