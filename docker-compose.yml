@@ -15,9 +15,9 @@ services:
       - .:/app
       - app_node_modules:/app/node_modules
     env_file:
-      - .env
+      - .env.local
     environment:
-      # Override .env values — these point to the Docker services, not localhost
+      # Override .env.local values — these point to the Docker services, not localhost
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/social_manager
       REDIS_URL: redis://redis:6379
       NODE_ENV: development
