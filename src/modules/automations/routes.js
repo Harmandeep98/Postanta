@@ -1,5 +1,26 @@
 export default async function automationRoutes(fastify) {
-  fastify.post('/automations', async (request, reply) => {
+  fastify.post('/automations', {
+    schema: {
+      tags: ['Automations'],
+      summary: 'Create an automation rule',
+      security: [{ bearerAuth: [] }],
+      body: {
+        type: 'object',
+        properties: {
+          socialAccountId: { type: 'string' },
+          triggerType: { type: 'string', enum: ['COMMENT_KEYWORD', 'DM_KEYWORD'] },
+          triggerKeyword: { type: 'string', description: 'Word or phrase to match' },
+          matchType: { type: 'string', enum: ['CONTAINS', 'EXACT', 'STARTS_WITH'] },
+          actionType: { type: 'string', enum: ['SEND_DM', 'REPLY_COMMENT', 'REPLY_DM'] },
+          messageTemplate: { type: 'string', description: 'Supports {{first_name}} placeholder' },
+          postId: { type: 'string', nullable: true, description: 'null = apply to all posts' },
+          replyOncePerUser: { type: 'boolean', default: true },
+          cooldownMinutes: { type: 'integer', default: 60 },
+          isActive: { type: 'boolean', default: true },
+        },
+      },
+    },
+  }, async (request, reply) => {
     const {
       socialAccountId,
       triggerType,
@@ -46,7 +67,18 @@ export default async function automationRoutes(fastify) {
     return reply.code(201).send(rule)
   })
 
-  fastify.get('/automations', async (request, reply) => {
+  fastify.get('/automations', {
+    schema: {
+      tags: ['Automations'],
+      summary: 'List automation rules for an account',
+      security: [{ bearerAuth: [] }],
+      querystring: {
+        type: 'object',
+        required: ['socialAccountId'],
+        properties: { socialAccountId: { type: 'string' } },
+      },
+    },
+  }, async (request, reply) => {
     const { socialAccountId } = request.query
     if (!socialAccountId) return reply.code(400).send({ error: 'socialAccountId is required' })
 
@@ -61,7 +93,14 @@ export default async function automationRoutes(fastify) {
     })
   })
 
-  fastify.get('/automations/:id', async (request, reply) => {
+  fastify.get('/automations/:id', {
+    schema: {
+      tags: ['Automations'],
+      summary: 'Get a single automation rule',
+      security: [{ bearerAuth: [] }],
+      params: { type: 'object', properties: { id: { type: 'string' } } },
+    },
+  }, async (request, reply) => {
     const rule = await fastify.prisma.automationRule.findFirst({
       where: { id: request.params.id, socialAccount: { user: { clerkId: request.auth.userId } } },
     })
@@ -69,7 +108,28 @@ export default async function automationRoutes(fastify) {
     return rule
   })
 
-  fastify.patch('/automations/:id', async (request, reply) => {
+  fastify.patch('/automations/:id', {
+    schema: {
+      tags: ['Automations'],
+      summary: 'Update an automation rule',
+      security: [{ bearerAuth: [] }],
+      params: { type: 'object', properties: { id: { type: 'string' } } },
+      body: {
+        type: 'object',
+        properties: {
+          triggerType: { type: 'string', enum: ['COMMENT_KEYWORD', 'DM_KEYWORD'] },
+          triggerKeyword: { type: 'string' },
+          matchType: { type: 'string', enum: ['CONTAINS', 'EXACT', 'STARTS_WITH'] },
+          actionType: { type: 'string', enum: ['SEND_DM', 'REPLY_COMMENT', 'REPLY_DM'] },
+          messageTemplate: { type: 'string' },
+          postId: { type: 'string', nullable: true },
+          replyOncePerUser: { type: 'boolean' },
+          cooldownMinutes: { type: 'integer' },
+          isActive: { type: 'boolean' },
+        },
+      },
+    },
+  }, async (request, reply) => {
     const rule = await fastify.prisma.automationRule.findFirst({
       where: { id: request.params.id, socialAccount: { user: { clerkId: request.auth.userId } } },
     })
@@ -102,7 +162,14 @@ export default async function automationRoutes(fastify) {
     return fastify.prisma.automationRule.update({ where: { id: rule.id }, data: updateData })
   })
 
-  fastify.delete('/automations/:id', async (request, reply) => {
+  fastify.delete('/automations/:id', {
+    schema: {
+      tags: ['Automations'],
+      summary: 'Delete an automation rule',
+      security: [{ bearerAuth: [] }],
+      params: { type: 'object', properties: { id: { type: 'string' } } },
+    },
+  }, async (request, reply) => {
     const rule = await fastify.prisma.automationRule.findFirst({
       where: { id: request.params.id, socialAccount: { user: { clerkId: request.auth.userId } } },
     })

@@ -1,5 +1,11 @@
 export default async function accountRoutes(fastify) {
-  fastify.get('/accounts', async (request, reply) => {
+  fastify.get('/accounts', {
+    schema: {
+      tags: ['Accounts'],
+      summary: 'List connected Instagram accounts',
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     const user = await fastify.prisma.user.findUnique({
       where: { clerkId: request.auth.userId },
     })
@@ -19,7 +25,14 @@ export default async function accountRoutes(fastify) {
     return accounts
   })
 
-  fastify.delete('/accounts/:id', async (request, reply) => {
+  fastify.delete('/accounts/:id', {
+    schema: {
+      tags: ['Accounts'],
+      summary: 'Disconnect an Instagram account',
+      security: [{ bearerAuth: [] }],
+      params: { type: 'object', properties: { id: { type: 'string' } } },
+    },
+  }, async (request, reply) => {
     const user = await fastify.prisma.user.findUnique({
       where: { clerkId: request.auth.userId },
     })

@@ -5,14 +5,14 @@ function isVideo(mediaUrl) {
   return mediaUrl ? /\.(mp4|mov)$/i.test(mediaUrl) : false
 }
 
-async function pollContainer(containerId, accessToken, intervalMs) {
-  for (let i = 0; i < 10; i++) {
-    const status = await metaService.getContainerStatus(containerId, accessToken)
-    if (status === 'FINISHED') return
-    if (status === 'ERROR') throw new Error('Video container processing failed')
-    if (i < 9) await new Promise((r) => setTimeout(r, intervalMs))
-  }
-  throw new Error('Video processing timed out')
+async function pollContainer(containerId, accessToken, intervalMs, attempt = 0) {
+  const status = await metaService.getContainerStatus(containerId, accessToken)
+  if (status === 'FINISHED') return
+  if (status === 'ERROR') throw new Error('Video container processing failed')
+  if (attempt >= 9) throw new Error('Video processing timed out')
+
+  await new Promise((r) => setTimeout(r, intervalMs))
+  return pollContainer(containerId, accessToken, intervalMs, attempt + 1)
 }
 
 export async function publishPost(job, prisma, log, { pollIntervalMs = 5000 } = {}) {
