@@ -15,11 +15,10 @@ Meta OAuth flow, token storage in `SocialAccount`, token refresh worker (BullMQ 
 `AutomationRule` schema, `POST /webhooks/meta` (HMAC-SHA256 verified, fire-and-forget), `ruleEngineService` (keyword match + cooldown + once-per-user), `automationWorker` (concurrency: 10), automations CRUD endpoints.
 
 ### Phase 5 — Dashboard API
-`GET /dashboard/analytics/rules` (per-rule trigger outcome breakdown), `GET /dashboard/queues` (live BullMQ job counts via `queueStatusService`), `GET /dashboard/rule-logs` (paginated, filterable `RuleExecutionLog` viewer, never exposes `triggerPayload`).
+`GET /dashboard/analytics/rules` (per-rule trigger outcome breakdown), `GET /dashboard/queues` (live BullMQ job counts via `queueStatusService`), `GET /dashboard/rule-logs` (paginated, filterable `RuleExecutionLog` viewer, never exposes `triggerPayload`). `/health` also wired to real queue counts via the same service.
 
 ---
 
 ## Up Next
 
-Nothing planned yet — open items:
-- `/health`'s queue counts are still hardcoded to zero; could reuse `queueStatusService` from Phase 5.
+- YouTube / TikTok support (deferred — Instagram-only for now).
