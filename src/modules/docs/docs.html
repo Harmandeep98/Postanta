@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Social Media Manager — API Docs</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-alt: #f6f7f9;
+    --fg: #1a1d23;
+    --fg-muted: #5b6270;
+    --border: #e3e5e9;
+    --accent: #6d28d9;
+    --accent-bg: #f3eefc;
+    --code-bg: #1a1d23;
+    --code-fg: #e7e9ee;
+    --get: #0b7285;
+    --post: #2f9e44;
+    --patch: #e8590c;
+    --delete: #c92a2a;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a;
+      --bg-alt: #1b1e24;
+      --fg: #e7e9ee;
+      --fg-muted: #9297a3;
+      --border: #2a2e37;
+      --accent: #b794f6;
+      --accent-bg: #2a2140;
+      --code-bg: #0d0e11;
+      --code-fg: #e7e9ee;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161a; --bg-alt: #1b1e24; --fg: #e7e9ee; --fg-muted: #9297a3;
+    --border: #2a2e37; --accent: #b794f6; --accent-bg: #2a2140; --code-bg: #0d0e11; --code-fg: #e7e9ee;
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff; --bg-alt: #f6f7f9; --fg: #1a1d23; --fg-muted: #5b6270;
+    --border: #e3e5e9; --accent: #6d28d9; --accent-bg: #f3eefc; --code-bg: #1a1d23; --code-fg: #e7e9ee;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.55;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.86em;
+  }
+  code.inline {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+  nav.sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    background: var(--bg-alt);
+  }
+  nav.sidebar .brand {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+  }
+  nav.sidebar .brand-sub {
+    font-size: 0.8rem;
+    color: var(--fg-muted);
+    margin-bottom: 20px;
+  }
+  nav.sidebar ul { list-style: none; margin: 0; padding: 0; }
+  nav.sidebar .group-title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--fg-muted);
+    margin: 18px 0 6px;
+    padding: 0 8px;
+  }
+  nav.sidebar a.nav-link {
+    display: block;
+    padding: 6px 8px;
+    border-radius: 6px;
+    color: var(--fg);
+    font-size: 0.9rem;
+  }
+  nav.sidebar a.nav-link:hover { background: var(--accent-bg); text-decoration: none; }
+  nav.sidebar a.nav-link.active { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+  main {
+    padding: 40px 48px 120px;
+    max-width: 860px;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  header.page-header { margin-bottom: 40px; }
+  header.page-header h1 { font-size: 1.9rem; margin: 0 0 8px; }
+  header.page-header p { color: var(--fg-muted); margin: 0; max-width: 640px; }
+  section.doc-section { margin-bottom: 56px; scroll-margin-top: 20px; }
+  section.doc-section > h2 {
+    font-size: 1.4rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 16px;
+  }
+  section.doc-section > p { color: var(--fg-muted); }
+  .endpoint {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+    background: var(--bg-alt);
+  }
+  .endpoint-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .method {
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    padding: 3px 8px;
+    border-radius: 5px;
+    color: #fff;
+  }
+  .method.get { background: var(--get); }
+  .method.post { background: var(--post); }
+  .method.patch { background: var(--patch); }
+  .method.delete { background: var(--delete); }
+  .path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.95rem; }
+  .badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--fg-muted);
+    margin-left: auto;
+  }
+  .badge.auth { color: var(--accent); border-color: var(--accent); }
+  .endpoint-summary { margin: 6px 0 14px; }
+  table.params {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin: 10px 0 16px;
+  }
+  table.params th, table.params td {
+    text-align: left;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.params th { color: var(--fg-muted); font-weight: 600; font-size: 0.78rem; }
+  table.params code.inline { white-space: nowrap; }
+  .code-block {
+    position: relative;
+    margin: 10px 0;
+  }
+  .code-block .label {
+    font-size: 0.72rem;
+    color: var(--fg-muted);
+    margin-bottom: 4px;
+    display: block;
+  }
+  pre.code {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 0;
+  }
+  button.copy-btn {
+    position: absolute;
+    top: 22px;
+    right: 8px;
+    font-size: 0.7rem;
+    background: rgba(255,255,255,0.08);
+    color: var(--code-fg);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 5px;
+    padding: 3px 8px;
+    cursor: pointer;
+  }
+  button.copy-btn:hover { background: rgba(255,255,255,0.16); }
+  .concept-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.88rem;
+  }
+  .concept-table th, .concept-table td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  .concept-table th { background: var(--bg-alt); }
+  .note {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-bg);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.88rem;
+    margin: 14px 0;
+  }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.sidebar { position: static; height: auto; }
+    main { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="brand">Social Media Manager</div>
+    <div class="brand-sub">API Reference</div>
+    <ul>
+      <li><a class="nav-link" href="#overview">Overview</a></li>
+      <li><a class="nav-link" href="#auth">Authentication</a></li>
+      <div class="group-title">Accounts</div>
+      <li><a class="nav-link" href="#get-accounts">List accounts</a></li>
+      <li><a class="nav-link" href="#delete-account">Disconnect account</a></li>
+      <div class="group-title">Media &amp; Posts</div>
+      <li><a class="nav-link" href="#get-upload-url">Get upload URL</a></li>
+      <li><a class="nav-link" href="#post-posts">Schedule post</a></li>
+      <li><a class="nav-link" href="#get-posts">List posts</a></li>
+      <li><a class="nav-link" href="#patch-post">Edit / reschedule post</a></li>
+      <li><a class="nav-link" href="#delete-post">Cancel post</a></li>
+      <div class="group-title">Automations (Rule Engine)</div>
+      <li><a class="nav-link" href="#rule-engine-concepts">Concepts</a></li>
+      <li><a class="nav-link" href="#post-automations">Create rule</a></li>
+      <li><a class="nav-link" href="#get-automations">List rules</a></li>
+      <li><a class="nav-link" href="#get-automation">Get rule</a></li>
+      <li><a class="nav-link" href="#patch-automation">Update rule</a></li>
+      <li><a class="nav-link" href="#delete-automation">Delete rule</a></li>
+      <div class="group-title">Webhooks</div>
+      <li><a class="nav-link" href="#webhooks-meta-get">Meta verification</a></li>
+      <li><a class="nav-link" href="#webhooks-meta-post">Meta events</a></li>
+      <div class="group-title">System</div>
+      <li><a class="nav-link" href="#health">Health check</a></li>
+    </ul>
+  </nav>
+  <main>
+    <header class="page-header">
+      <h1>Social Media Manager API</h1>
+      <p>Instagram automation backend — scheduled posts and a ManyChat-style rule engine that auto-replies to comments and DMs based on keyword matches.</p>
+    </header>
+
+    <section class="doc-section" id="overview">
+      <h2>Overview</h2>
+      <p>All request/response bodies are JSON. Errors are returned as <code class="inline">{ "error": "message" }</code> with a 4xx/5xx status. Successful writes return <code class="inline">201</code> (create) or <code class="inline">204</code> with no body (delete).</p>
+      <table class="concept-table">
+        <thead><tr><th>Environment</th><th>Base URL</th></tr></thead>
+        <tbody>
+          <tr><td>Local</td><td><code class="inline">http://localhost:3000</code></td></tr>
+          <tr><td>Staging</td><td>Coolify staging URL — separate Meta app, safe to test against</td></tr>
+          <tr><td>Production</td><td>Coolify prod URL — live Instagram accounts, real DMs get sent</td></tr>
+        </tbody>
+      </table>
+      <div class="note">Staging uses its own <code class="inline">META_APP_ID</code>, so testing automations there never touches real Instagram traffic.</div>
+    </section>
+
+    <section class="doc-section" id="auth">
+      <h2>Authentication</h2>
+      <p>Every route below except <code class="inline">/health</code> and <code class="inline">/webhooks/*</code> requires a Clerk session token as a Bearer token:</p>
+      <div class="code-block">
+        <span class="label">HEADER</span>
+        <pre class="code"><code>Authorization: Bearer &lt;clerk_session_jwt&gt;</code></pre>
+      </div>
+      <p>For local testing, generate a token from the Clerk Dashboard → Users → select user → "Create session token". <code class="inline">/webhooks/*</code> routes skip Clerk auth entirely but verify a signature instead (Meta HMAC or Svix, see below) — never call them directly yourself.</p>
+      <p><strong>Connecting an Instagram account</strong> is a two-step OAuth dance, not a single API call:</p>
+      <table class="concept-table">
+        <thead><tr><th>Step</th><th>Route</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><code class="inline">GET /auth/instagram</code></td><td>Open in a <strong>browser</strong> (not Postman/curl) while logged in. Redirects to Facebook's OAuth dialog.</td></tr>
+          <tr><td>2</td><td><code class="inline">GET /auth/instagram/callback</code></td><td>Meta redirects here after consent. Server exchanges the code for a long-lived token, fetches the IG business account(s), upserts <code class="inline">SocialAccount</code> rows, then redirects to <code class="inline">FRONTEND_URL</code>.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="doc-section" id="accounts">
+      <h2>Accounts</h2>
+      <p>Connected Instagram business accounts for the current Clerk user.</p>
+
+      <div class="endpoint" id="get-accounts">
+        <div class="endpoint-head">
+          <span class="method get">GET</span><span class="path">/accounts</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">List connected Instagram accounts for the authenticated user.</p>
+        <div class="code-block">
+          <span class="label">REQUEST</span>
+          <pre class="code"><code>curl $BASE_URL/accounts \
+  -H "Authorization: Bearer $TOKEN"</code></pre>
+        </div>
+        <div class="code-block">
+          <span class="label">200 RESPONSE</span>
+          <pre class="code"><code>[
+  {
+    "id": "cku1a2b3c",
+    "instagramAccountId": "17841400000000000",
+    "instagramUsername": "my_brand",
+    "tokenExpiresAt": "2026-09-10T12:00:00.000Z",
+    "createdAt": "2026-05-01T09:00:00.000Z"
+  }
+]</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint" id="delete-account">
+        <div class="endpoint-head">
+          <span class="method delete">DELETE</span><span class="path">/accounts/:id</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">Disconnect an Instagram account. Cascades to its scheduled posts and automation rules.</p>
+        <table class="params">
+          <thead><tr><th>Param</th><th>In</th><th>Type</th><th>Notes</th></tr></thead>
+          <tbody><tr><td><code class="inline">id</code></td><td>path</td><td>string</td><td><code class="inline">SocialAccount.id</code></td></tr></tbody>
+        </table>
+        <div class="code-block">
+          <span class="label">REQUEST</span>
+          <pre class="code"><code>curl -X DELETE $BASE_URL/accounts/cku1a2b3c \
+  -H "Authorization: Bearer $TOKEN"</code></pre>
+        </div>
+        <p>Returns <code class="inline">204 No Content</code>. <code class="inline">404</code> if the account doesn't exist or isn't owned by the caller.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="media-posts">
+      <h2>Media &amp; Posts</h2>
+      <p>Upload media to S3, then schedule a post referencing that URL.</p>
+
+      <div class="endpoint" id="get-upload-url">
+        <div class="endpoint-head">
+          <span class="method get">GET</span><span class="path">/media/upload-url</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">Get an S3 presigned upload URL for an image or video.</p>
+        <table class="params">
+          <thead><tr><th>Param</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+          <tbody><tr><td><code class="inline">contentType</code></td><td>query</td><td>string</td><td>yes</td><td>e.g. <code class="inline">image/jpeg</code>, <code class="inline">video/mp4</code></td></tr></tbody>
+        </table>
+        <div class="code-block">
+          <span class="label">REQUEST</span>
+          <pre class="code"><code>curl "$BASE_URL/media/upload-url?contentType=image/jpeg" \
+  -H "Authorization: Bearer $TOKEN"</code></pre>
+        </div>
+        <div class="code-block">
+          <span class="label">200 RESPONSE</span>
+          <pre class="code"><code>{
+  "uploadUrl": "https://bucket.s3.amazonaws.com/...(presigned)",
+  "publicUrl": "https://bucket.s3.amazonaws.com/uploads/abc123.jpg"
+}</code></pre>
+        </div>
+        <p>PUT the raw file bytes to <code class="inline">uploadUrl</code>, then pass <code class="inline">publicUrl</code> as <code class="inline">mediaUrl</code> when scheduling a post.</p>
+      </div>
+
+      <div class="endpoint" id="post-posts">
+        <div class="endpoint-head">
+          <span class="method post">POST</span><span class="path">/posts</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">Schedule a new post. Enqueues a BullMQ delayed job that publishes via the Meta Graph API at <code class="inline">scheduledAt</code>.</p>
+        <table class="params">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">socialAccountId</code></td><td>string</td><td>yes</td><td></td></tr>
+            <tr><td><code class="inline">caption</code></td><td>string</td><td>no</td><td></td></tr>
+            <tr><td><code class="inline">mediaUrl</code></td><td>string</td><td>no</td><td>public URL from the upload-url step</td></tr>
+            <tr><td><code class="inline">scheduledAt</code></td><td>string (ISO date-time)</td><td>yes</td><td>must be in the future</td></tr>
+          </tbody>
+        </table>
+        <div class="code-block">
+          <span class="label">REQUEST</span>
+          <pre class="code"><code>curl -X POST $BASE_URL/posts \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "socialAccountId": "cku1a2b3c",
+    "caption": "New drop 🔥",
+    "mediaUrl": "https://bucket.s3.amazonaws.com/uploads/abc123.jpg",
+    "scheduledAt": "2026-07-20T15:00:00.000Z"
+  }'</code></pre>
+        </div>
+        <div class="code-block">
+          <span class="label">201 RESPONSE</span>
+          <pre class="code"><code>{
+  "id": "cpost001",
+  "socialAccountId": "cku1a2b3c",
+  "caption": "New drop 🔥",
+  "mediaUrl": "https://bucket.s3.amazonaws.com/uploads/abc123.jpg",
+  "scheduledAt": "2026-07-20T15:00:00.000Z",
+  "status": "SCHEDULED",
+  "bullJobId": "1042",
+  "errorMessage": null,
+  "createdAt": "2026-07-13T10:00:00.000Z",
+  "updatedAt": "2026-07-13T10:00:00.000Z"
+}</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint" id="get-posts">
+        <div class="endpoint-head">
+          <span class="method get">GET</span><span class="path">/posts</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">List scheduled posts for an account, newest <code class="inline">scheduledAt</code> first.</p>
+        <table class="params">
+          <thead><tr><th>Param</th><th>In</th><th>Required</th></tr></thead>
+          <tbody><tr><td><code class="inline">socialAccountId</code></td><td>query</td><td>yes</td></tr></tbody>
+        </table>
+        <div class="code-block">
+          <span class="label">REQUEST</span>
+          <pre class="code"><code>curl "$BASE_URL/posts?socialAccountId=cku1a2b3c" \
+  -H "Authorization: Bearer $TOKEN"</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint" id="patch-post">
+        <div class="endpoint-head">
+          <span class="method patch">PATCH</span><span class="path">/posts/:id</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">Edit caption/media, or reschedule (moves the underlying BullMQ job). Rejected with <code class="inline">400</code> if the post is already <code class="inline">PUBLISHED</code>.</p>
+        <table class="params">
+          <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">caption</code></td><td>string</td><td>optional</td></tr>
+            <tr><td><code class="inline">mediaUrl</code></td><td>string</td><td>optional</td></tr>
+            <tr><td><code class="inline">scheduledAt</code></td><td>string (ISO date-time)</td><td>optional, must be in the future — reschedules the BullMQ job</td></tr>
+          </tbody>
+        </table>
+        <div class="code-block">
+          <span class="label">REQUEST</span>
+          <pre class="code"><code>curl -X PATCH $BASE_URL/posts/cpost001 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{ "scheduledAt": "2026-07-21T09:00:00.000Z" }'</code></pre>
+        </div>
+        <p>If the reschedule fails, the post is marked <code class="inline">FAILED</code> with an <code class="inline">errorMessage</code> and the API returns <code class="inline">500</code>.</p>
+      </div>
+
+      <div class="endpoint" id="delete-post">
+        <div class="endpoint-head">
+          <span class="method delete">DELETE</span><span class="path">/posts/:id</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">Cancel the BullMQ job and delete the post row. Returns <code class="inline">204</code>.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="automations">
+      <h2>Automations (Rule Engine)</h2>
+
+      <div id="rule-engine-concepts">
+        <p>A rule fires when a webhook event matches its <code class="inline">triggerType</code> + keyword, then performs one <code class="inline">actionType</code>. Three combinations are valid:</p>
+        <table class="concept-table">
+          <thead><tr><th>Trigger</th><th>Action</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">COMMENT_KEYWORD</code></td><td><code class="inline">SEND_DM</code></td><td>Comment contains keyword → send a private DM to the commenter</td></tr>
+            <tr><td><code class="inline">COMMENT_KEYWORD</code></td><td><code class="inline">REPLY_COMMENT</code></td><td>Comment contains keyword → reply publicly under the comment</td></tr>
+            <tr><td><code class="inline">DM_KEYWORD</code></td><td><code class="inline">REPLY_DM</code></td><td>Incoming DM matches keyword → reply in the same thread</td></tr>
+          </tbody>
+        </table>
+        <p>Other fields:</p>
+        <table class="concept-table">
+          <thead><tr><th>Field</th><th>Values</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code class="inline">matchType</code></td><td><code class="inline">CONTAINS</code> / <code class="inline">EXACT</code> / <code class="inline">STARTS_WITH</code></td><td>How <code class="inline">triggerKeyword</code> is matched against the incoming text</td></tr>
+            <tr><td><code class="inline">postId</code></td><td>IG post ID or <code class="inline">null</code></td><td><code class="inline">null</code> = applies to all posts. Ignored (forced <code class="inline">null</code>) for <code class="inline">DM_KEYWORD</code> rules</td></tr>
+            <tr><td><code class="inline">messageTemplate</code></td><td>string</td><td>Response text. Supports <code class="inline">{{first_name}}</code></td></tr>
+            <tr><td><code class="inline">replyOncePerUser</code></td><td>boolean, default <code class="inline">true</code></td><td>Enforced at the DB level via a unique constraint — a user triggers a rule at most once, ever</td></tr>
+            <tr><td><code class="inline">cooldownMinutes</code></td><td>int, default <code class="inline">60</code></td><td>Skip if the same user triggered the same rule again within this window</td></tr>
+          </tbody>
+        </table>
+        <div class="note">Mismatched trigger/action pairs are rejected with <code class="inline">400</code> — e.g. <code class="inline">REPLY_COMMENT</code> requires <code class="inline">triggerType: COMMENT_KEYWORD</code>.</div>
+      </div>
+
+      <div class="endpoint" id="post-automations">
+        <div class="endpoint-head">
+          <span class="method post">POST</span><span class="path">/automations</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">Create an automation rule.</p>
+        <div class="code-block">
+          <span class="label">REQUEST</span>
+          <pre class="code"><code>curl -X POST $BASE_URL/automations \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "socialAccountId": "cku1a2b3c",
+    "triggerType": "COMMENT_KEYWORD",
+    "triggerKeyword": "price",
+    "matchType": "CONTAINS",
+    "actionType": "SEND_DM",
+    "messageTemplate": "Hey {{first_name}}, here'"'"'s our price list! 🎉",
+    "postId": null,
+    "replyOncePerUser": true,
+    "cooldownMinutes": 60
+  }'</code></pre>
+        </div>
+        <div class="code-block">
+          <span class="label">201 RESPONSE</span>
+          <pre class="code"><code>{
+  "id": "crule001",
+  "socialAccountId": "cku1a2b3c",
+  "triggerType": "COMMENT_KEYWORD",
+  "triggerKeyword": "price",
+  "matchType": "CONTAINS",
+  "postId": null,
+  "actionType": "SEND_DM",
+  "messageTemplate": "Hey {{first_name}}, here's our price list! 🎉",
+  "replyOncePerUser": true,
+  "cooldownMinutes": 60,
+  "isActive": true,
+  "createdAt": "2026-07-13T10:00:00.000Z",
+  "updatedAt": "2026-07-13T10:00:00.000Z"
+}</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint" id="get-automations">
+        <div class="endpoint-head">
+          <span class="method get">GET</span><span class="path">/automations</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">List rules for an account, newest first.</p>
+        <table class="params">
+          <thead><tr><th>Param</th><th>In</th><th>Required</th></tr></thead>
+          <tbody><tr><td><code class="inline">socialAccountId</code></td><td>query</td><td>yes</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="endpoint" id="get-automation">
+        <div class="endpoint-head">
+          <span class="method get">GET</span><span class="path">/automations/:id</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">Get a single rule. <code class="inline">404</code> if not found or not owned by caller.</p>
+      </div>
+
+      <div class="endpoint" id="patch-automation">
+        <div class="endpoint-head">
+          <span class="method patch">PATCH</span><span class="path">/automations/:id</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">Update any subset of rule fields. Same trigger/action compatibility check as create applies to the merged result.</p>
+        <div class="code-block">
+          <span class="label">REQUEST</span>
+          <pre class="code"><code>curl -X PATCH $BASE_URL/automations/crule001 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{ "isActive": false }'</code></pre>
+        </div>
+      </div>
+
+      <div class="endpoint" id="delete-automation">
+        <div class="endpoint-head">
+          <span class="method delete">DELETE</span><span class="path">/automations/:id</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">Delete a rule. Returns <code class="inline">204</code>.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="webhooks">
+      <h2>Webhooks</h2>
+      <p>Called by Meta / Clerk — not by your frontend or Postman.</p>
+
+      <div class="endpoint" id="webhooks-meta-get">
+        <div class="endpoint-head">
+          <span class="method get">GET</span><span class="path">/webhooks/meta</span>
+          <span class="badge">No auth</span>
+        </div>
+        <p class="endpoint-summary">Meta's webhook subscription challenge. Echoes <code class="inline">hub.challenge</code> back if <code class="inline">hub.verify_token</code> matches <code class="inline">META_WEBHOOK_SECRET</code>, else <code class="inline">403</code>.</p>
+      </div>
+
+      <div class="endpoint" id="webhooks-meta-post">
+        <div class="endpoint-head">
+          <span class="method post">POST</span><span class="path">/webhooks/meta</span>
+          <span class="badge">HMAC signature</span>
+        </div>
+        <p class="endpoint-summary">Receives comment and DM change events. Requires a valid <code class="inline">X-Hub-Signature-256</code> header (HMAC-SHA256 of the raw body using <code class="inline">META_WEBHOOK_SECRET</code>, timing-safe compared) — invalid/missing signature returns <code class="inline">403</code>.</p>
+        <p>Returns <code class="inline">200</code> immediately; matching against automation rules and enqueueing jobs happens fire-and-forget after the response is sent.</p>
+        <div class="note">Internally this parses each <code class="inline">entry.changes</code> (comments) and <code class="inline">entry.messaging</code> (DMs) into normalized events, then calls <code class="inline">ruleEngineService.evaluate()</code> for each, in parallel.</div>
+      </div>
+
+      <p><strong>Clerk lifecycle webhook</strong> — <code class="inline">POST /webhooks/clerk</code> (internal, hidden from this reference) keeps the local <code class="inline">User</code> table in sync with Clerk's <code class="inline">user.created</code> / <code class="inline">user.deleted</code> events, verified via Svix signature headers.</p>
+    </section>
+
+    <section class="doc-section" id="health">
+      <h2>Health</h2>
+      <div class="endpoint">
+        <div class="endpoint-head">
+          <span class="method get">GET</span><span class="path">/health</span>
+          <span class="badge">No auth</span>
+        </div>
+        <p class="endpoint-summary">Liveness probe used by Coolify.</p>
+        <div class="code-block">
+          <span class="label">200 RESPONSE</span>
+          <pre class="code"><code>{
+  "status": "ok",
+  "uptime": 4821.3,
+  "queues": { "pending": 0, "active": 0, "failed": 0 }
+}</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+  document.querySelectorAll('pre.code').forEach((block) => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', () => {
+      navigator.clipboard.writeText(block.textContent).then(() => {
+        btn.textContent = 'Copied';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 1200);
+      });
+    });
+    block.parentElement.appendChild(btn);
+  });
+
+  const links = Array.from(document.querySelectorAll('nav.sidebar a.nav-link'));
+  const targets = links
+    .map((link) => document.querySelector(link.getAttribute('href')))
+    .filter(Boolean);
+
+  const setActive = (id) => {
+    links.forEach((l) => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries.filter((e) => e.isIntersecting);
+    if (visible.length > 0) setActive(visible[0].target.id);
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  targets.forEach((t) => observer.observe(t));
+</script>
+</body>
+</html>
