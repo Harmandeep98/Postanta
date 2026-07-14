@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AccountProvider } from './context/AccountContext'
 import AppLayout from './layout/AppLayout'
 import ToastContainer from './components/ToastContainer'
+import AuthIllustration from './components/AuthIllustration'
 import { pushToast } from './lib/toast'
 
 // Route-level splitting — each page ships its own chunk, fetched on first visit instead of upfront.
@@ -18,6 +19,13 @@ const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 if (!publishableKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY')
 
 const ACCENT = { light: '#0369a1', dark: '#38bdf8' }
+// Clerk's default copy reads "Sign in to {applicationName}" using the app's name
+// configured in the Clerk Dashboard, which still says the old placeholder name —
+// overriding the strings directly here is simpler than a dashboard rename dependency.
+const CLERK_LOCALIZATION = {
+  signIn: { start: { title: 'Sign in to Postanta', subtitle: 'Welcome back! Please sign in to continue' } },
+  signUp: { start: { title: 'Create your Postanta account', subtitle: 'Welcome! Please fill in the details to get started' } },
+}
 // staleTime avoids an instant refetch on every remount/navigation/window-focus —
 // data is treated as fresh for 30s before TanStack Query bothers hitting the API again.
 const queryClient = new QueryClient({
@@ -26,6 +34,25 @@ const queryClient = new QueryClient({
     onError: (err) => pushToast(err.message || 'Something went wrong'),
   }),
 })
+
+function AuthLayout({ children }) {
+  return (
+    <div className="auth-shell">
+      <div className="auth-illustration">
+        <AuthIllustration />
+        <p className="auth-tagline">
+          Automate replies, schedule posts, and see what's working — all from one place.
+        </p>
+      </div>
+      <div className="auth-form-side">
+        <div className="auth-content">
+          <img src="/logo.png" alt="Postanta" className="auth-logo" />
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function useTheme() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light')
@@ -43,7 +70,11 @@ function App() {
   const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light')
 
   return (
-    <ClerkProvider publishableKey={publishableKey} appearance={{ variables: { colorPrimary: ACCENT[theme] } }}>
+    <ClerkProvider
+      publishableKey={publishableKey}
+      appearance={{ variables: { colorPrimary: ACCENT[theme] } }}
+      localization={CLERK_LOCALIZATION}
+    >
       <ToastContainer />
       <BrowserRouter>
         <SignedOut>
@@ -54,23 +85,17 @@ function App() {
             <Route
               path="/sign-up/*"
               element={
-                <div className="auth-shell">
-                  <div className="auth-content">
-                    <img src="/logo.png" alt="Postanta" className="auth-logo" />
-                    <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" />
-                  </div>
-                </div>
+                <AuthLayout>
+                  <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" />
+                </AuthLayout>
               }
             />
             <Route
               path="/sign-in/*"
               element={
-                <div className="auth-shell">
-                  <div className="auth-content">
-                    <img src="/logo.png" alt="Postanta" className="auth-logo" />
-                    <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
-                  </div>
-                </div>
+                <AuthLayout>
+                  <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
+                </AuthLayout>
               }
             />
             <Route path="*" element={<Navigate to="/sign-in" replace />} />
