@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Link2, Trash2 } from 'lucide-react'
+import { Link2, Trash2, Rocket } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
 import { SkeletonRows } from '../components/Skeleton'
+import EmptyState from '../components/EmptyState'
 
 export default function AccountsPage() {
   const api = useApiClient()
@@ -44,7 +45,11 @@ export default function AccountsPage() {
       {isLoading ? (
         <SkeletonRows count={3} />
       ) : accounts.length === 0 ? (
-        <div className="empty-state">No connected accounts yet — click "Connect Instagram" above.</div>
+        <EmptyState
+          icon={Rocket}
+          title="No connected accounts yet"
+          description={'Click "Connect Instagram" above to get started.'}
+        />
       ) : (
         <ul className="account-list">
           {accounts.map((account) => (

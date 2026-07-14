@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, X, Pencil, Trash2, Power, PowerOff } from 'lucide-react'
+import { Plus, X, Pencil, Trash2, Power, PowerOff, Compass, Wand2 } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
 import { SkeletonRows } from '../components/Skeleton'
+import EmptyState from '../components/EmptyState'
 
 const ACTIONS_BY_TRIGGER = {
   COMMENT_KEYWORD: ['SEND_DM', 'REPLY_COMMENT'],
@@ -57,7 +58,17 @@ export default function AutomationsPage() {
     onSuccess: invalidate,
   })
 
-  if (!selectedAccountId) return <p>Select an account on the Accounts page first.</p>
+  if (!selectedAccountId) {
+    return (
+      <EmptyState
+        icon={Compass}
+        title="No account selected"
+        description="Pick an Instagram account to start automating replies."
+        actionTo="/accounts"
+        actionLabel="Go to Accounts"
+      />
+    )
+  }
   if (error) return <p className="error">{error.message}</p>
 
   return (
@@ -82,7 +93,11 @@ export default function AutomationsPage() {
       {isLoading ? (
         <SkeletonRows count={3} />
       ) : rules.length === 0 ? (
-        <div className="empty-state">No automation rules yet.</div>
+        <EmptyState
+          icon={Wand2}
+          title="No automation rules yet"
+          description="Create your first rule to auto-reply on keywords."
+        />
       ) : (
         <ul className="post-list">
           {rules.map((rule) => (
