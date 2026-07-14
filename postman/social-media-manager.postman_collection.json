@@ -246,6 +246,18 @@
           }
         },
         {
+          "name": "GET /dashboard/analytics/posts — Post status + engagement metrics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/analytics/posts?socialAccountId={{socialAccountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "analytics", "posts"],
+              "query": [{ "key": "socialAccountId", "value": "{{socialAccountId}}" }]
+            }
+          }
+        },
+        {
           "name": "GET /dashboard/queues — Live BullMQ job counts",
           "request": {
             "method": "GET",
