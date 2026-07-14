@@ -26,9 +26,9 @@ Meta OAuth flow, token storage in `SocialAccount`, token refresh worker (BullMQ 
 
 `frontend/` — React + Vite + Clerk + TanStack Query (see `docs/DEV.md` → Frontend section for setup/state-management notes).
 
-**Done:** Clerk auth (in-app `/sign-in` + `/sign-up`, not the hosted Account Portal), dark/light theme toggle, teal/coral color palette, sidebar + routing shell, Accounts page (list/connect/disconnect), Posts page (schedule with media upload, list with status badges, edit/reschedule inline, cancel) — all wired to the real API.
+**Done:** Clerk auth (in-app `/sign-in` + `/sign-up`, not the hosted Account Portal), dark/light theme toggle, teal/coral color palette, sidebar + routing shell, Accounts page (list/connect/disconnect), Posts page (schedule with media upload, list with status badges, edit/reschedule inline, cancel), Automations page (create/list/edit/delete rules, activate/deactivate toggle, action dropdown constrained to valid trigger/action combos) — all wired to the real API.
 
-**Pending:** Automations page, Dashboard page (both currently stubs) — next up.
+**Pending:** Dashboard page (currently a stub) — next up.
 
 **Known local-dev gap:** Clerk's `user.created` webhook can't reach `localhost` without a tunnel, so `User` rows don't auto-create on sign-up locally yet — see `docs/DEV.md` for the manual-insert workaround. Setting up ngrok properly is still open.
 
@@ -36,7 +36,7 @@ Meta OAuth flow, token storage in `SocialAccount`, token refresh worker (BullMQ 
 
 ## Up Next
 
-- Build Automations / Dashboard frontend pages
+- Build Dashboard frontend page
 - Set up ngrok for local Clerk webhook delivery
 - YouTube / TikTok support (deferred — Instagram-only for now)
 - Meta App Review + Business Verification (deferred — dev/tester mode for now, see conversation notes on going live as a solo dev without a registered company)
