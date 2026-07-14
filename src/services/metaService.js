@@ -112,6 +112,32 @@ export async function getContainerStatus(containerId, accessToken) {
   return data.status_code
 }
 
+// Likes/comments live on the media object itself; impressions/reach/saved are insights-only.
+// Fetched in parallel since they're independent Graph API calls.
+export async function getMediaMetrics(mediaId, accessToken) {
+  const fieldsUrl = new URL(`${GRAPH_URL}/${mediaId}`)
+  fieldsUrl.searchParams.set('fields', 'like_count,comments_count,media_type,permalink,timestamp')
+  fieldsUrl.searchParams.set('access_token', accessToken)
+
+  const insightsUrl = new URL(`${GRAPH_URL}/${mediaId}/insights`)
+  insightsUrl.searchParams.set('metric', 'impressions,reach,saved')
+  insightsUrl.searchParams.set('access_token', accessToken)
+
+  const [fields, insights] = await Promise.all([graphFetch(fieldsUrl), graphFetch(insightsUrl)])
+
+  const metricValue = (name) => insights.data?.find((m) => m.name === name)?.values?.[0]?.value ?? 0
+
+  return {
+    likeCount: fields.like_count ?? 0,
+    commentsCount: fields.comments_count ?? 0,
+    mediaType: fields.media_type,
+    permalink: fields.permalink,
+    impressions: metricValue('impressions'),
+    reach: metricValue('reach'),
+    saved: metricValue('saved'),
+  }
+}
+
 export async function publishContainer(instagramAccountId, accessToken, containerId) {
   const url = new URL(`${GRAPH_URL}/${instagramAccountId}/media_publish`)
   url.searchParams.set('access_token', accessToken)

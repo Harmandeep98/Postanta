@@ -52,7 +52,10 @@ export async function publishPost(job, prisma, log, { pollIntervalMs = 5000 } = 
       mediaId = await metaService.publishContainer(instagramAccountId, accessToken, containerId)
     }
 
-    await prisma.scheduledPost.update({ where: { id: postId }, data: { status: 'PUBLISHED' } })
+    await prisma.scheduledPost.update({
+      where: { id: postId },
+      data: { status: 'PUBLISHED', instagramMediaId: mediaId },
+    })
     log.info({ postId, mediaId }, 'post published')
   } catch (err) {
     await prisma.scheduledPost.update({

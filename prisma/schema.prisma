@@ -87,6 +87,7 @@ model ScheduledPost {
   status          PostStatus    @default(SCHEDULED)
   bullJobId       String?       // BullMQ job ID for cancellation
   errorMessage    String?
+  instagramMediaId String?      // IG media ID returned by Meta on publish, needed to fetch insights later
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt

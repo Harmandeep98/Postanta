@@ -30,11 +30,20 @@ vi.mock('../../services/ruleEngineService.js', () => ({
 
 vi.mock('../../services/mediaService.js', () => ({ getUploadUrl: vi.fn() }))
 
+const metaGetValidToken = vi.fn()
+const metaGetMediaMetrics = vi.fn()
+vi.mock('../../services/metaService.js', () => ({
+  getValidToken: (...args) => metaGetValidToken(...args),
+  getMediaMetrics: (...args) => metaGetMediaMetrics(...args),
+}))
+
 const prismaSocialAccountFindFirst = vi.fn()
 const prismaAutomationRuleFindMany = vi.fn()
 const prismaRuleExecutionLogGroupBy = vi.fn()
 const prismaRuleExecutionLogFindMany = vi.fn()
 const prismaRuleExecutionLogCount = vi.fn()
+const prismaScheduledPostGroupBy = vi.fn()
+const prismaScheduledPostFindMany = vi.fn()
 
 vi.mock('@prisma/client', () => ({
   PrismaClient: vi.fn(() => ({
@@ -43,7 +52,12 @@ vi.mock('@prisma/client', () => ({
     user: { findUnique: vi.fn() },
     socialAccount: { findFirst: prismaSocialAccountFindFirst },
     scheduledPost: {
-      create: vi.fn(), update: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), delete: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      findMany: prismaScheduledPostFindMany,
+      findFirst: vi.fn(),
+      delete: vi.fn(),
+      groupBy: prismaScheduledPostGroupBy,
     },
     automationRule: {
       create: vi.fn(), findMany: prismaAutomationRuleFindMany, findFirst: vi.fn(), update: vi.fn(), delete: vi.fn(),
@@ -149,6 +163,116 @@ describe('GET /dashboard/analytics/rules', () => {
         }),
       }),
     )
+  })
+})
+
+describe('GET /dashboard/analytics/posts', () => {
+  let fastify
+  beforeAll(async () => { fastify = await build({ logger: false }); await fastify.ready() })
+  afterAll(() => fastify.close())
+  beforeEach(() => {
+    prismaSocialAccountFindFirst.mockReset()
+    prismaScheduledPostGroupBy.mockReset()
+    prismaScheduledPostFindMany.mockReset()
+    metaGetValidToken.mockReset()
+    metaGetMediaMetrics.mockReset()
+  })
+
+  it('returns 401 without auth', async () => {
+    const res = await fastify.inject({ method: 'GET', url: '/dashboard/analytics/posts?socialAccountId=acc-1' })
+    expect(res.statusCode).toBe(401)
+  })
+
+  it('returns 400 when socialAccountId is missing', async () => {
+    const res = await fastify.inject({ method: 'GET', url: '/dashboard/analytics/posts', headers: AUTH_HEADER })
+    expect(res.statusCode).toBe(400)
+  })
+
+  it('returns 404 when account belongs to another user', async () => {
+    prismaSocialAccountFindFirst.mockResolvedValueOnce(null)
+    const res = await fastify.inject({
+      method: 'GET',
+      url: '/dashboard/analytics/posts?socialAccountId=acc-1',
+      headers: AUTH_HEADER,
+    })
+    expect(res.statusCode).toBe(404)
+  })
+
+  it('computes post status counts and skips Meta calls when nothing is published', async () => {
+    prismaSocialAccountFindFirst.mockResolvedValueOnce({ id: 'acc-1' })
+    prismaScheduledPostGroupBy.mockResolvedValueOnce([
+      { status: 'SCHEDULED', _count: 2 },
+      { status: 'DRAFT', _count: 1 },
+    ])
+    prismaScheduledPostFindMany.mockResolvedValueOnce([])
+
+    const res = await fastify.inject({
+      method: 'GET',
+      url: '/dashboard/analytics/posts?socialAccountId=acc-1',
+      headers: AUTH_HEADER,
+    })
+
+    expect(res.statusCode).toBe(200)
+    const body = res.json()
+    expect(body.postStats).toEqual({ total: 3, draft: 1, scheduled: 2, published: 0, failed: 0 })
+    expect(body.engagement).toEqual({
+      totalImpressions: 0, totalReach: 0, totalLikes: 0, totalComments: 0, totalSaved: 0,
+      postsWithMetrics: 0, postsUnavailable: 0,
+    })
+    expect(body.posts).toEqual([])
+    expect(metaGetValidToken).not.toHaveBeenCalled()
+  })
+
+  it('fetches and aggregates live metrics for published posts', async () => {
+    prismaSocialAccountFindFirst.mockResolvedValueOnce({ id: 'acc-1', accessToken: 'tok' })
+    prismaScheduledPostGroupBy.mockResolvedValueOnce([{ status: 'PUBLISHED', _count: 2 }])
+    prismaScheduledPostFindMany.mockResolvedValueOnce([
+      { id: 'post-1', caption: 'First', scheduledAt: new Date().toISOString(), instagramMediaId: 'media-1' },
+      { id: 'post-2', caption: 'Second', scheduledAt: new Date().toISOString(), instagramMediaId: 'media-2' },
+    ])
+    metaGetValidToken.mockResolvedValueOnce('valid-token')
+    metaGetMediaMetrics
+      .mockResolvedValueOnce({ likeCount: 10, commentsCount: 2, impressions: 100, reach: 80, saved: 3, permalink: 'https://ig/1' })
+      .mockResolvedValueOnce({ likeCount: 5, commentsCount: 1, impressions: 50, reach: 40, saved: 1, permalink: 'https://ig/2' })
+
+    const res = await fastify.inject({
+      method: 'GET',
+      url: '/dashboard/analytics/posts?socialAccountId=acc-1',
+      headers: AUTH_HEADER,
+    })
+
+    expect(res.statusCode).toBe(200)
+    const body = res.json()
+    expect(body.engagement).toEqual({
+      totalImpressions: 150, totalReach: 120, totalLikes: 15, totalComments: 3, totalSaved: 4,
+      postsWithMetrics: 2, postsUnavailable: 0,
+    })
+    expect(body.posts).toHaveLength(2)
+    expect(body.posts[0]).toMatchObject({ id: 'post-1', likeCount: 10, permalink: 'https://ig/1' })
+    expect(metaGetMediaMetrics).toHaveBeenCalledWith('media-1', 'valid-token')
+    expect(metaGetMediaMetrics).toHaveBeenCalledWith('media-2', 'valid-token')
+  })
+
+  it('counts a post as unavailable when its Meta metrics call fails, without failing the request', async () => {
+    prismaSocialAccountFindFirst.mockResolvedValueOnce({ id: 'acc-1', accessToken: 'tok' })
+    prismaScheduledPostGroupBy.mockResolvedValueOnce([{ status: 'PUBLISHED', _count: 1 }])
+    prismaScheduledPostFindMany.mockResolvedValueOnce([
+      { id: 'post-1', caption: 'Gone', scheduledAt: new Date().toISOString(), instagramMediaId: 'media-1' },
+    ])
+    metaGetValidToken.mockResolvedValueOnce('valid-token')
+    metaGetMediaMetrics.mockRejectedValueOnce(new Error('media not found'))
+
+    const res = await fastify.inject({
+      method: 'GET',
+      url: '/dashboard/analytics/posts?socialAccountId=acc-1',
+      headers: AUTH_HEADER,
+    })
+
+    expect(res.statusCode).toBe(200)
+    const body = res.json()
+    expect(body.engagement.postsUnavailable).toBe(1)
+    expect(body.engagement.postsWithMetrics).toBe(0)
+    expect(body.posts).toEqual([])
   })
 })
 
