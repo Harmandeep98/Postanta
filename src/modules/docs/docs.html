@@ -260,6 +260,7 @@
       <li><a class="nav-link" href="#webhooks-meta-post">Meta events</a></li>
       <div class="group-title">Dashboard</div>
       <li><a class="nav-link" href="#get-dashboard-analytics">Rule analytics</a></li>
+      <li><a class="nav-link" href="#get-dashboard-post-analytics">Post analytics</a></li>
       <li><a class="nav-link" href="#get-dashboard-queues">Queue status</a></li>
       <li><a class="nav-link" href="#get-dashboard-rule-logs">Rule execution logs</a></li>
       <div class="group-title">System</div>
@@ -656,6 +657,41 @@
   ]
 }</code></pre>
         </div>
+      </div>
+
+      <div class="endpoint" id="get-dashboard-post-analytics">
+        <div class="endpoint-head">
+          <span class="method get">GET</span><span class="path">/dashboard/analytics/posts</span>
+          <span class="badge auth">Bearer</span>
+        </div>
+        <p class="endpoint-summary">Post scheduling status counts, plus live Instagram engagement metrics (impressions/reach/likes/comments/saved) fetched from Meta for published posts.</p>
+        <table class="params">
+          <thead><tr><th>Param</th><th>In</th><th>Required</th><th>Notes</th></tr></thead>
+          <tbody><tr><td><code class="inline">socialAccountId</code></td><td>query</td><td>yes</td><td></td></tr></tbody>
+        </table>
+        <div class="code-block">
+          <span class="label">REQUEST</span>
+          <pre class="code"><code>curl "$BASE_URL/dashboard/analytics/posts?socialAccountId=cku1a2b3c" \
+  -H "Authorization: Bearer $TOKEN"</code></pre>
+        </div>
+        <div class="code-block">
+          <span class="label">200 RESPONSE</span>
+          <pre class="code"><code>{
+  "postStats": { "total": 8, "draft": 0, "scheduled": 3, "published": 4, "failed": 1 },
+  "engagement": {
+    "totalImpressions": 1200, "totalReach": 900, "totalLikes": 85,
+    "totalComments": 14, "totalSaved": 6, "postsWithMetrics": 4, "postsUnavailable": 0
+  },
+  "posts": [
+    {
+      "id": "cpost001", "caption": "New drop 🔥", "scheduledAt": "2026-07-10T15:00:00.000Z",
+      "permalink": "https://instagram.com/p/abc123",
+      "likeCount": 40, "commentsCount": 6, "impressions": 500, "reach": 380, "saved": 3
+    }
+  ]
+}</code></pre>
+        </div>
+        <div class="note">Per-post Meta calls run in parallel via <code class="inline">Promise.allSettled</code> — one post's insights failing (deleted media, unsupported type) doesn't break the whole response; it's just counted in <code class="inline">postsUnavailable</code> instead. Only the most recent 20 published posts are checked.</div>
       </div>
 
       <div class="endpoint" id="get-dashboard-queues">

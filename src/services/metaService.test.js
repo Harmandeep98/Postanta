@@ -25,6 +25,7 @@ const {
   sendDm,
   replyToComment,
   replyInThread,
+  getMediaMetrics,
 } = await import('./metaService.js')
 
 describe('exchangeCodeForShortLivedToken', () => {
@@ -305,6 +306,65 @@ describe('replyInThread', () => {
     expect(opts.method).toBe('POST')
     expect(url.toString()).toContain('/me/messages')
     expect(JSON.parse(opts.body)).toEqual({ recipient: { id: 'thread-1' }, message: { text: 'Got it!' } })
+  })
+})
+
+describe('getMediaMetrics', () => {
+  beforeEach(() => fetchMock.mockReset())
+
+  it('fetches media fields and insights in parallel and merges them', async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            like_count: 42,
+            comments_count: 5,
+            media_type: 'IMAGE',
+            permalink: 'https://instagram.com/p/abc',
+            timestamp: '2026-07-01T00:00:00Z',
+          }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: [
+              { name: 'impressions', values: [{ value: 1000 }] },
+              { name: 'reach', values: [{ value: 800 }] },
+              { name: 'saved', values: [{ value: 12 }] },
+            ],
+          }),
+      })
+
+    const result = await getMediaMetrics('media-1', 'token-abc')
+
+    expect(result).toEqual({
+      likeCount: 42,
+      commentsCount: 5,
+      mediaType: 'IMAGE',
+      permalink: 'https://instagram.com/p/abc',
+      impressions: 1000,
+      reach: 800,
+      saved: 12,
+    })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock.mock.calls[0][0].toString()).toContain('/media-1?')
+    expect(fetchMock.mock.calls[1][0].toString()).toContain('/media-1/insights')
+  })
+
+  it('defaults missing insight metrics to 0', async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ like_count: 3, comments_count: 0 }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ data: [] }) })
+
+    const result = await getMediaMetrics('media-2', 'token-abc')
+    expect(result.impressions).toBe(0)
+    expect(result.reach).toBe(0)
+    expect(result.saved).toBe(0)
   })
 })
 

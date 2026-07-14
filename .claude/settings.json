@@ -1,7 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(curl -s -o /dev/null -w \"frontend: %{http_code}\\\\n\" http://localhost:5173/)"
+      "Bash(curl -s -o /dev/null -w \"frontend: %{http_code}\\\\n\" http://localhost:5173/)",
+      "Read(//Users/harmandeepsingh/.claude/plugins/cache/ui-ux-pro-max-skill/ui-ux-pro-max/2.6.2/.claude/skills/ui-ux-pro-max/**)",
+      "Bash(python3 scripts/search.py \"SaaS dashboard social media scheduling automation tool professional\" --design-system -p \"Social Media Manager\")",
+      "Bash(python3 scripts/search.py \"admin dashboard analytics tool B2B saas internal operations minimal\" --design-system -p \"Social Media Manager Dashboard\")",
+      "Bash(python3 scripts/search.py \"saas dashboard professional modern\" --domain color -n 6)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5173/)",
+      "Bash(npm install *)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres@localhost:5433/social_manager\" npx prisma migrate dev --name add_instagram_media_id)",
+      "Bash(docker exec *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/dashboard/analytics/posts?socialAccountId=x)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"http://localhost:3000/dashboard/analytics/posts?socialAccountId=x\")",
+      "Bash(git stash *)"
     ]
   }
 }

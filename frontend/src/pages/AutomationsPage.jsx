@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Plus, X, Pencil, Trash2, Power, PowerOff } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
 
@@ -64,6 +65,7 @@ export default function AutomationsPage() {
       <div className="page-header">
         <h1>Automations</h1>
         <button type="button" onClick={() => setShowForm((v) => !v)}>
+          {showForm ? <X size={16} /> : <Plus size={16} />}
           {showForm ? 'Close' : 'New Rule'}
         </button>
       </div>
@@ -96,6 +98,7 @@ export default function AutomationsPage() {
                 <>
                   <div>
                     <span className={`status-badge ${rule.isActive ? 'status-scheduled' : ''}`}>
+                      {rule.isActive ? <Power size={13} /> : <PowerOff size={13} />}
                       {rule.isActive ? 'Active' : 'Inactive'}
                     </span>
                     <p className="post-caption">
@@ -114,17 +117,20 @@ export default function AutomationsPage() {
                       onClick={() => updateRule.mutate({ id: rule.id, body: { isActive: !rule.isActive } })}
                       disabled={updateRule.isPending}
                     >
+                      {rule.isActive ? <PowerOff size={15} /> : <Power size={15} />}
                       {rule.isActive ? 'Deactivate' : 'Activate'}
                     </button>
                     <button type="button" className="secondary" onClick={() => setEditingId(rule.id)}>
+                      <Pencil size={15} />
                       Edit
                     </button>
                     <button
                       type="button"
-                      className="secondary"
+                      className="secondary danger"
                       onClick={() => deleteRule.mutate(rule.id)}
                       disabled={deleteRule.isPending}
                     >
+                      <Trash2 size={15} />
                       Delete
                     </button>
                   </div>
@@ -256,6 +262,7 @@ function RuleForm({ initial, submitLabel, onSubmit, onCancel, pending, error }) 
         </button>
         {onCancel && (
           <button type="button" className="secondary" onClick={onCancel}>
+            <X size={15} />
             Cancel
           </button>
         )}

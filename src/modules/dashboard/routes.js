@@ -2,6 +2,7 @@ import { createAutomationQueue } from '../../queues/automationQueue.js'
 import { createPostQueue } from '../../queues/postQueue.js'
 import { createTokenRefreshQueue } from '../../queues/tokenRefreshQueue.js'
 import { createQueueStatusService } from '../../services/queueStatusService.js'
+import * as metaService from '../../services/metaService.js'
 
 const OUTCOMES = ['EXECUTED', 'SKIPPED_ONCE_PER_USER', 'SKIPPED_COOLDOWN', 'FAILED']
 
@@ -88,6 +89,93 @@ export default async function dashboardRoutes(fastify) {
     })
 
     return { socialAccountId, from: from ?? null, to: to ?? null, rules: rulesWithCounts }
+  })
+
+  fastify.get('/dashboard/analytics/posts', {
+    schema: {
+      tags: ['Dashboard'],
+      summary: 'Post scheduling stats + live Instagram engagement metrics',
+      security: [{ bearerAuth: [] }],
+      querystring: {
+        type: 'object',
+        required: ['socialAccountId'],
+        properties: { socialAccountId: { type: 'string' } },
+      },
+    },
+  }, async (request, reply) => {
+    const { socialAccountId } = request.query
+    if (!socialAccountId) return reply.code(400).send({ error: 'socialAccountId is required' })
+
+    const account = await fastify.prisma.socialAccount.findFirst({
+      where: { id: socialAccountId, user: { clerkId: request.auth.userId } },
+    })
+    if (!account) return reply.code(404).send({ error: 'Account not found' })
+
+    const [statusGroups, publishedPosts] = await Promise.all([
+      fastify.prisma.scheduledPost.groupBy({
+        by: ['status'],
+        where: { socialAccountId },
+        _count: true,
+      }),
+      fastify.prisma.scheduledPost.findMany({
+        where: { socialAccountId, status: 'PUBLISHED', instagramMediaId: { not: null } },
+        select: { id: true, caption: true, scheduledAt: true, instagramMediaId: true },
+        orderBy: { scheduledAt: 'desc' },
+        take: 20,
+      }),
+    ])
+
+    const postStats = { total: 0, draft: 0, scheduled: 0, published: 0, failed: 0 }
+    for (const group of statusGroups) {
+      postStats[group.status.toLowerCase()] = group._count
+      postStats.total += group._count
+    }
+
+    const engagement = {
+      totalImpressions: 0,
+      totalReach: 0,
+      totalLikes: 0,
+      totalComments: 0,
+      totalSaved: 0,
+      postsWithMetrics: 0,
+      postsUnavailable: 0,
+    }
+    const posts = []
+
+    if (publishedPosts.length > 0) {
+      const accessToken = await metaService.getValidToken(account, fastify.prisma)
+      const metricsResults = await Promise.allSettled(
+        publishedPosts.map((post) => metaService.getMediaMetrics(post.instagramMediaId, accessToken)),
+      )
+
+      publishedPosts.forEach((post, i) => {
+        const result = metricsResults[i]
+        if (result.status !== 'fulfilled') {
+          engagement.postsUnavailable += 1
+          return
+        }
+        const metrics = result.value
+        engagement.totalImpressions += metrics.impressions
+        engagement.totalReach += metrics.reach
+        engagement.totalLikes += metrics.likeCount
+        engagement.totalComments += metrics.commentsCount
+        engagement.totalSaved += metrics.saved
+        engagement.postsWithMetrics += 1
+        posts.push({
+          id: post.id,
+          caption: post.caption,
+          scheduledAt: post.scheduledAt,
+          permalink: metrics.permalink,
+          likeCount: metrics.likeCount,
+          commentsCount: metrics.commentsCount,
+          impressions: metrics.impressions,
+          reach: metrics.reach,
+          saved: metrics.saved,
+        })
+      })
+    }
+
+    return { postStats, engagement, posts }
   })
 
   fastify.get('/dashboard/queues', {
