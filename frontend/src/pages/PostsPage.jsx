@@ -5,6 +5,8 @@ import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
 import { SkeletonRows } from '../components/Skeleton'
 import EmptyState from '../components/EmptyState'
+import { pushToast } from '../lib/toast'
+import { optimisticList } from '../lib/optimisticList'
 
 const STATUS_ICON = {
   DRAFT: Pencil,
@@ -49,17 +51,19 @@ export default function PostsPage() {
     },
   })
 
+  const postsKey = ['posts', selectedAccountId]
+
   const updatePost = useMutation({
     mutationFn: ({ id, body }) => api.patch(`/posts/${id}`, body),
-    onSuccess: () => {
-      invalidate()
-      setEditingId(null)
-    },
+    ...optimisticList(queryClient, postsKey, (old, { id, body }) => old?.map((p) => (p.id === id ? { ...p, ...body } : p))),
+    onSuccess: () => setEditingId(null),
+    onSettled: invalidate,
   })
 
   const deletePost = useMutation({
     mutationFn: (id) => api.del(`/posts/${id}`),
-    onSuccess: invalidate,
+    ...optimisticList(queryClient, postsKey, (old, id) => old?.filter((p) => p.id !== id)),
+    onSettled: invalidate,
   })
 
   if (!selectedAccountId) {
@@ -90,7 +94,6 @@ export default function PostsPage() {
           submitLabel="Schedule"
           onSubmit={(body) => createPost.mutate(body)}
           pending={createPost.isPending}
-          error={createPost.error}
         />
       )}
 
@@ -113,7 +116,6 @@ export default function PostsPage() {
                   onSubmit={(body) => updatePost.mutate({ id: post.id, body })}
                   onCancel={() => setEditingId(null)}
                   pending={updatePost.isPending}
-                  error={updatePost.error}
                 />
               ) : (
                 <>
@@ -156,19 +158,17 @@ export default function PostsPage() {
   )
 }
 
-function PostForm({ initial, submitLabel, onSubmit, onCancel, pending, error }) {
+function PostForm({ initial, submitLabel, onSubmit, onCancel, pending }) {
   const api = useApiClient()
   const [caption, setCaption] = useState(initial?.caption ?? '')
   const [mediaUrl, setMediaUrl] = useState(initial?.mediaUrl ?? '')
   const [scheduledAt, setScheduledAt] = useState(initial ? toLocalInputValue(initial.scheduledAt) : '')
   const [uploading, setUploading] = useState(false)
-  const [uploadError, setUploadError] = useState(null)
 
   async function handleFile(e) {
     const file = e.target.files[0]
     if (!file) return
     setUploading(true)
-    setUploadError(null)
     try {
       const { uploadUrl, mediaUrl: publicUrl } = await api.get(
         `/media/upload-url?contentType=${encodeURIComponent(file.type)}`,
@@ -176,7 +176,7 @@ function PostForm({ initial, submitLabel, onSubmit, onCancel, pending, error }) 
       await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } })
       setMediaUrl(publicUrl)
     } catch (err) {
-      setUploadError(err.message)
+      pushToast(err.message)
     } finally {
       setUploading(false)
     }
@@ -196,9 +196,7 @@ function PostForm({ initial, submitLabel, onSubmit, onCancel, pending, error }) 
           <CheckCircle2 size={14} /> Media attached
         </p>
       )}
-      {uploadError && <p className="error">{uploadError}</p>}
       <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} required />
-      {error && <p className="error">{error.message}</p>}
       <div className="post-actions">
         <button type="submit" disabled={pending || uploading || !scheduledAt}>
           {pending ? 'Saving…' : submitLabel}

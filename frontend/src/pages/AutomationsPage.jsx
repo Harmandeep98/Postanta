@@ -5,6 +5,7 @@ import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
 import { SkeletonRows } from '../components/Skeleton'
 import EmptyState from '../components/EmptyState'
+import { optimisticList } from '../lib/optimisticList'
 
 const ACTIONS_BY_TRIGGER = {
   COMMENT_KEYWORD: ['SEND_DM', 'REPLY_COMMENT'],
@@ -45,17 +46,19 @@ export default function AutomationsPage() {
     },
   })
 
+  const rulesKey = ['automations', selectedAccountId]
+
   const updateRule = useMutation({
     mutationFn: ({ id, body }) => api.patch(`/automations/${id}`, body),
-    onSuccess: () => {
-      invalidate()
-      setEditingId(null)
-    },
+    ...optimisticList(queryClient, rulesKey, (old, { id, body }) => old?.map((r) => (r.id === id ? { ...r, ...body } : r))),
+    onSuccess: () => setEditingId(null),
+    onSettled: invalidate,
   })
 
   const deleteRule = useMutation({
     mutationFn: (id) => api.del(`/automations/${id}`),
-    onSuccess: invalidate,
+    ...optimisticList(queryClient, rulesKey, (old, id) => old?.filter((r) => r.id !== id)),
+    onSettled: invalidate,
   })
 
   if (!selectedAccountId) {
@@ -86,7 +89,6 @@ export default function AutomationsPage() {
           submitLabel="Create Rule"
           onSubmit={(body) => createRule.mutate(body)}
           pending={createRule.isPending}
-          error={createRule.error}
         />
       )}
 
@@ -109,7 +111,6 @@ export default function AutomationsPage() {
                   onSubmit={(body) => updateRule.mutate({ id: rule.id, body })}
                   onCancel={() => setEditingId(null)}
                   pending={updateRule.isPending}
-                  error={updateRule.error}
                 />
               ) : (
                 <>
@@ -161,7 +162,7 @@ export default function AutomationsPage() {
   )
 }
 
-function RuleForm({ initial, submitLabel, onSubmit, onCancel, pending, error }) {
+function RuleForm({ initial, submitLabel, onSubmit, onCancel, pending }) {
   const [triggerType, setTriggerType] = useState(initial?.triggerType ?? 'COMMENT_KEYWORD')
   const [matchType, setMatchType] = useState(initial?.matchType ?? 'CONTAINS')
   const [triggerKeyword, setTriggerKeyword] = useState(initial?.triggerKeyword ?? '')
@@ -270,8 +271,6 @@ function RuleForm({ initial, submitLabel, onSubmit, onCancel, pending, error }) 
           />
         </label>
       )}
-
-      {error && <p className="error">{error.message}</p>}
 
       <div className="post-actions">
         <button type="submit" disabled={pending}>
