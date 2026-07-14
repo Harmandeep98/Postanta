@@ -4,6 +4,7 @@ import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
 import { SkeletonRows } from '../components/Skeleton'
 import EmptyState from '../components/EmptyState'
+import { optimisticList } from '../lib/optimisticList'
 
 export default function AccountsPage() {
   const api = useApiClient()
@@ -24,10 +25,11 @@ export default function AccountsPage() {
 
   const disconnect = useMutation({
     mutationFn: (id) => api.del(`/accounts/${id}`),
+    ...optimisticList(queryClient, ['accounts'], (old, id) => old?.filter((a) => a.id !== id)),
     onSuccess: (_, id) => {
       if (selectedAccountId === id) selectAccount(null)
-      queryClient.invalidateQueries({ queryKey: ['accounts'] })
     },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['accounts'] }),
   })
 
   if (error) return <p className="error">{error.message}</p>
