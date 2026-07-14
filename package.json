@@ -11,7 +11,9 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "seed:fake-account": "node --env-file=.env.local scripts/seed-fake-account.js",
+    "webhook:simulate": "node --env-file=.env.local scripts/simulate-webhook.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1044.0",

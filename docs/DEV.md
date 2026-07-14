@@ -217,6 +217,28 @@ Upload your file with a `PUT` request to `uploadUrl`, then use `mediaUrl` in `PO
 
 These are called by Meta, not by you directly. To test locally use [ngrok](https://ngrok.com) to expose your local server.
 
+### Testing the rule engine without a real Meta account
+
+Before Meta App Review / a working OAuth connect, you can still exercise the whole rule-engine
+pipeline (signature check → keyword match → cooldown/once-per-user → enqueue → worker →
+`RuleExecutionLog`) using a fake account and a properly-signed fake webhook payload:
+
+```bash
+# 1. Create a fake SocialAccount tied to your real signed-in Clerk user
+docker compose exec app npm run seed:fake-account -- <your-clerk-user-id>
+
+# 2. In the app UI, select that fake account and create an automation rule
+
+# 3. Fire a signed fake webhook event at it
+docker compose exec app npm run webhook:simulate -- comment "what is the price?"
+docker compose exec app npm run webhook:simulate -- dm "hello there"
+```
+
+The final Graph API call (reply/DM send) will fail — the fake account has no real access
+token — and the execution lands as `FAILED` in the dashboard's Execution Log with Meta's real
+"Invalid OAuth access token" error. That's expected: it proves the failure path works. Everything
+upstream of that call (signature verification, rule matching, dedup, logging) is real.
+
 ---
 
 ## Useful Commands
