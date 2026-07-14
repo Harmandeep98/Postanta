@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Social Media Manager",
-    "description": "API collection for the Social Media Manager backend. Set `authToken` and `socialAccountId` variables before using protected endpoints.",
+    "name": "Postanta",
+    "description": "API collection for the Postanta backend. Set `authToken` and `socialAccountId` variables before using protected endpoints.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

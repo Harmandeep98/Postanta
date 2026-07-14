@@ -1,4 +1,4 @@
-# Social Media Manager
+# Postanta
 
 A full-stack social media manager for Instagram (YouTube/TikTok planned). Its core feature is a
 ManyChat-style rule engine that triggers automated DMs and replies based on keyword matching in
