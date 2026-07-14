@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, X, Pencil, Trash2, Clock, CheckCircle2, XCircle } from 'lucide-react'
+import { Plus, X, Pencil, Trash2, Clock, CheckCircle2, XCircle, Compass, CalendarPlus } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
 import { SkeletonRows } from '../components/Skeleton'
+import EmptyState from '../components/EmptyState'
 
 const STATUS_ICON = {
   DRAFT: Pencil,
@@ -61,7 +62,17 @@ export default function PostsPage() {
     onSuccess: invalidate,
   })
 
-  if (!selectedAccountId) return <p>Select an account on the Accounts page first.</p>
+  if (!selectedAccountId) {
+    return (
+      <EmptyState
+        icon={Compass}
+        title="No account selected"
+        description="Pick an Instagram account to schedule posts."
+        actionTo="/accounts"
+        actionLabel="Go to Accounts"
+      />
+    )
+  }
   if (error) return <p className="error">{error.message}</p>
 
   return (
@@ -86,7 +97,11 @@ export default function PostsPage() {
       {isLoading ? (
         <SkeletonRows count={3} />
       ) : posts.length === 0 ? (
-        <div className="empty-state">No scheduled posts yet.</div>
+        <EmptyState
+          icon={CalendarPlus}
+          title="No scheduled posts yet"
+          description="Click New Post above to schedule your first one."
+        />
       ) : (
         <ul className="post-list">
           {posts.map((post) => (
