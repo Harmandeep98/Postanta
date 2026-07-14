@@ -145,7 +145,9 @@ export default async function dashboardRoutes(fastify) {
     if (publishedPosts.length > 0) {
       const accessToken = await metaService.getValidToken(account, fastify.prisma)
       const metricsResults = await Promise.allSettled(
-        publishedPosts.map((post) => metaService.getMediaMetrics(post.instagramMediaId, accessToken)),
+        publishedPosts.map((post) =>
+          metaService.getMediaMetricsCached(post.instagramMediaId, accessToken, fastify.redis),
+        ),
       )
 
       publishedPosts.forEach((post, i) => {
