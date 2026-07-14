@@ -1,11 +1,14 @@
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest'
 
+const redisGet = vi.fn().mockResolvedValue(null)
+const redisSet = vi.fn().mockResolvedValue('OK')
+
 vi.mock('ioredis', () => ({
   default: vi.fn().mockImplementation(() => ({
     quit: vi.fn().mockResolvedValue(undefined),
     status: 'ready',
-    set: vi.fn(),
-    get: vi.fn(),
+    set: (...args) => redisSet(...args),
+    get: (...args) => redisGet(...args),
     del: vi.fn(),
   })),
 }))
@@ -31,10 +34,10 @@ vi.mock('../../services/ruleEngineService.js', () => ({
 vi.mock('../../services/mediaService.js', () => ({ getUploadUrl: vi.fn() }))
 
 const metaGetValidToken = vi.fn()
-const metaGetMediaMetrics = vi.fn()
+const metaGetMediaMetricsCached = vi.fn()
 vi.mock('../../services/metaService.js', () => ({
   getValidToken: (...args) => metaGetValidToken(...args),
-  getMediaMetrics: (...args) => metaGetMediaMetrics(...args),
+  getMediaMetricsCached: (...args) => metaGetMediaMetricsCached(...args),
 }))
 
 const prismaSocialAccountFindFirst = vi.fn()
@@ -175,7 +178,7 @@ describe('GET /dashboard/analytics/posts', () => {
     prismaScheduledPostGroupBy.mockReset()
     prismaScheduledPostFindMany.mockReset()
     metaGetValidToken.mockReset()
-    metaGetMediaMetrics.mockReset()
+    metaGetMediaMetricsCached.mockReset()
   })
 
   it('returns 401 without auth', async () => {
@@ -231,7 +234,7 @@ describe('GET /dashboard/analytics/posts', () => {
       { id: 'post-2', caption: 'Second', scheduledAt: new Date().toISOString(), instagramMediaId: 'media-2' },
     ])
     metaGetValidToken.mockResolvedValueOnce('valid-token')
-    metaGetMediaMetrics
+    metaGetMediaMetricsCached
       .mockResolvedValueOnce({ likeCount: 10, commentsCount: 2, impressions: 100, reach: 80, saved: 3, permalink: 'https://ig/1' })
       .mockResolvedValueOnce({ likeCount: 5, commentsCount: 1, impressions: 50, reach: 40, saved: 1, permalink: 'https://ig/2' })
 
@@ -249,8 +252,8 @@ describe('GET /dashboard/analytics/posts', () => {
     })
     expect(body.posts).toHaveLength(2)
     expect(body.posts[0]).toMatchObject({ id: 'post-1', likeCount: 10, permalink: 'https://ig/1' })
-    expect(metaGetMediaMetrics).toHaveBeenCalledWith('media-1', 'valid-token')
-    expect(metaGetMediaMetrics).toHaveBeenCalledWith('media-2', 'valid-token')
+    expect(metaGetMediaMetricsCached).toHaveBeenCalledWith('media-1', 'valid-token', expect.anything())
+    expect(metaGetMediaMetricsCached).toHaveBeenCalledWith('media-2', 'valid-token', expect.anything())
   })
 
   it('counts a post as unavailable when its Meta metrics call fails, without failing the request', async () => {
@@ -260,7 +263,7 @@ describe('GET /dashboard/analytics/posts', () => {
       { id: 'post-1', caption: 'Gone', scheduledAt: new Date().toISOString(), instagramMediaId: 'media-1' },
     ])
     metaGetValidToken.mockResolvedValueOnce('valid-token')
-    metaGetMediaMetrics.mockRejectedValueOnce(new Error('media not found'))
+    metaGetMediaMetricsCached.mockRejectedValueOnce(new Error('media not found'))
 
     const res = await fastify.inject({
       method: 'GET',

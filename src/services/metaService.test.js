@@ -26,6 +26,7 @@ const {
   replyToComment,
   replyInThread,
   getMediaMetrics,
+  getMediaMetricsCached,
 } = await import('./metaService.js')
 
 describe('exchangeCodeForShortLivedToken', () => {
@@ -365,6 +366,37 @@ describe('getMediaMetrics', () => {
     expect(result.impressions).toBe(0)
     expect(result.reach).toBe(0)
     expect(result.saved).toBe(0)
+  })
+})
+
+describe('getMediaMetricsCached', () => {
+  beforeEach(() => fetchMock.mockReset())
+
+  it('returns the cached value without calling Meta on a cache hit', async () => {
+    const cachedMetrics = { likeCount: 5, commentsCount: 1, impressions: 100, reach: 80, saved: 2 }
+    const redis = { get: vi.fn().mockResolvedValue(JSON.stringify(cachedMetrics)), set: vi.fn() }
+
+    const result = await getMediaMetricsCached('media-1', 'token-abc', redis)
+
+    expect(result).toEqual(cachedMetrics)
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(redis.set).not.toHaveBeenCalled()
+    expect(redis.get).toHaveBeenCalledWith('media-metrics:media-1')
+  })
+
+  it('fetches from Meta and caches the result on a cache miss', async () => {
+    const redis = { get: vi.fn().mockResolvedValue(null), set: vi.fn().mockResolvedValue('OK') }
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ like_count: 7, comments_count: 3, media_type: 'IMAGE', permalink: 'https://ig/x' }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ data: [] }) })
+
+    const result = await getMediaMetricsCached('media-2', 'token-abc', redis)
+
+    expect(result.likeCount).toBe(7)
+    expect(redis.set).toHaveBeenCalledWith('media-metrics:media-2', JSON.stringify(result), 'EX', 600)
   })
 })
 
