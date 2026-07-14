@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Link2, Trash2 } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
 
@@ -35,6 +36,7 @@ export default function AccountsPage() {
       <div className="page-header">
         <h1>Accounts</h1>
         <button type="button" onClick={() => connect.mutate()} disabled={connect.isPending}>
+          <Link2 size={16} />
           {connect.isPending ? 'Redirecting…' : 'Connect Instagram'}
         </button>
       </div>
@@ -56,10 +58,11 @@ export default function AccountsPage() {
               </label>
               <button
                 type="button"
-                className="secondary"
+                className="secondary danger"
                 onClick={() => disconnect.mutate(account.id)}
                 disabled={disconnect.isPending}
               >
+                <Trash2 size={15} />
                 Disconnect
               </button>
             </li>

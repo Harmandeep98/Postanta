@@ -94,6 +94,9 @@ a {
 }
 
 button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font: inherit;
   font-weight: 550;
   border: none;
@@ -129,6 +132,15 @@ button.secondary:hover:not(:disabled) {
   color: var(--accent-2);
 }
 
+button.secondary.danger {
+  color: var(--accent-2);
+  border-color: color-mix(in srgb, var(--accent-2) 35%, var(--border));
+}
+
+button.secondary.danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-2) 10%, var(--surface));
+}
+
 /* --- auth (signed out) --- */
 
 .theme-toggle {
@@ -136,6 +148,9 @@ button.secondary:hover:not(:disabled) {
   top: 16px;
   right: 16px;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
@@ -232,6 +247,9 @@ button.secondary:hover:not(:disabled) {
 }
 
 .theme-toggle-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text);
@@ -339,9 +357,16 @@ button.secondary:hover:not(:disabled) {
 }
 
 .post-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   margin: 0;
   color: var(--text-muted);
   font-size: 13px;
+}
+
+.post-meta.success-text {
+  color: #16a34a;
 }
 
 .post-actions {
@@ -351,7 +376,9 @@ button.secondary:hover:not(:disabled) {
 }
 
 .status-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
   font-weight: 650;
   padding: 3px 10px;
@@ -454,8 +481,12 @@ button.secondary:hover:not(:disabled) {
 }
 
 .queue-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin: 0 0 8px;
   font-size: 14px;
+  color: var(--accent);
 }
 
 .queue-card dl {

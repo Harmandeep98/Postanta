@@ -1,7 +1,15 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Plus, X, Pencil, Trash2, Clock, CheckCircle2, XCircle } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
+
+const STATUS_ICON = {
+  DRAFT: Pencil,
+  SCHEDULED: Clock,
+  PUBLISHED: CheckCircle2,
+  FAILED: XCircle,
+}
 
 const STATUS_LABEL = {
   DRAFT: 'Draft',
@@ -61,6 +69,7 @@ export default function PostsPage() {
       <div className="page-header">
         <h1>Posts</h1>
         <button type="button" onClick={() => setShowForm((v) => !v)}>
+          {showForm ? <X size={16} /> : <Plus size={16} />}
           {showForm ? 'Close' : 'New Post'}
         </button>
       </div>
@@ -93,6 +102,10 @@ export default function PostsPage() {
                 <>
                   <div>
                     <span className={`status-badge status-${post.status.toLowerCase()}`}>
+                      {(() => {
+                        const StatusIcon = STATUS_ICON[post.status]
+                        return <StatusIcon size={13} />
+                      })()}
                       {STATUS_LABEL[post.status]}
                     </span>
                     <p className="post-caption">{post.caption || <em>No caption</em>}</p>
@@ -102,15 +115,17 @@ export default function PostsPage() {
                   <div className="post-actions">
                     {post.status !== 'PUBLISHED' && (
                       <button type="button" className="secondary" onClick={() => setEditingId(post.id)}>
+                        <Pencil size={15} />
                         Edit
                       </button>
                     )}
                     <button
                       type="button"
-                      className="secondary"
+                      className="secondary danger"
                       onClick={() => deletePost.mutate(post.id)}
                       disabled={deletePost.isPending}
                     >
+                      <Trash2 size={15} />
                       Cancel
                     </button>
                   </div>
@@ -159,7 +174,11 @@ function PostForm({ initial, submitLabel, onSubmit, onCancel, pending, error }) 
     <form className="post-form" onSubmit={handleSubmit}>
       <textarea placeholder="Caption" value={caption} onChange={(e) => setCaption(e.target.value)} rows={3} />
       <input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime" onChange={handleFile} disabled={uploading} />
-      {mediaUrl && <p className="post-meta">Media attached ✓</p>}
+      {mediaUrl && (
+        <p className="post-meta success-text">
+          <CheckCircle2 size={14} /> Media attached
+        </p>
+      )}
       {uploadError && <p className="error">{uploadError}</p>}
       <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} required />
       {error && <p className="error">{error.message}</p>}
@@ -169,6 +188,7 @@ function PostForm({ initial, submitLabel, onSubmit, onCancel, pending, error }) 
         </button>
         {onCancel && (
           <button type="button" className="secondary" onClick={onCancel}>
+            <X size={15} />
             Cancel
           </button>
         )}

@@ -1,10 +1,18 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Zap, CalendarClock, RefreshCw, CheckCircle2, XCircle, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
 
 const OUTCOMES = ['EXECUTED', 'SKIPPED_ONCE_PER_USER', 'SKIPPED_COOLDOWN', 'FAILED']
 const QUEUE_LABEL = { automation: 'Automation', posts: 'Posts', tokenRefresh: 'Token Refresh' }
+const QUEUE_ICON = { automation: Zap, posts: CalendarClock, tokenRefresh: RefreshCw }
+const OUTCOME_ICON = {
+  EXECUTED: CheckCircle2,
+  FAILED: XCircle,
+  SKIPPED_ONCE_PER_USER: Clock,
+  SKIPPED_COOLDOWN: Clock,
+}
 
 export default function DashboardPage() {
   const api = useApiClient()
@@ -45,9 +53,14 @@ export default function DashboardPage() {
           <p>Loading…</p>
         ) : (
           <div className="queue-grid">
-            {Object.entries(queues).map(([name, counts]) => (
+            {Object.entries(queues).map(([name, counts]) => {
+              const QueueIcon = QUEUE_ICON[name]
+              return (
               <div key={name} className="queue-card">
-                <h3>{QUEUE_LABEL[name] ?? name}</h3>
+                <h3>
+                  {QueueIcon && <QueueIcon size={15} />}
+                  {QUEUE_LABEL[name] ?? name}
+                </h3>
                 <dl>
                   {Object.entries(counts).map(([k, v]) => (
                     <div key={k} className="queue-stat">
@@ -57,7 +70,8 @@ export default function DashboardPage() {
                   ))}
                 </dl>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </section>
@@ -155,6 +169,10 @@ export default function DashboardPage() {
                           <td className="mono">{log.instagramUserId}</td>
                           <td>
                             <span className={`status-badge ${log.outcome === 'EXECUTED' ? 'status-published' : log.outcome === 'FAILED' ? 'status-failed' : ''}`}>
+                              {(() => {
+                                const OutcomeIcon = OUTCOME_ICON[log.outcome]
+                                return <OutcomeIcon size={13} />
+                              })()}
                               {log.outcome}
                             </span>
                           </td>
@@ -167,6 +185,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="pagination">
                   <button type="button" className="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+                    <ChevronLeft size={15} />
                     Prev
                   </button>
                   <span>
@@ -179,6 +198,7 @@ export default function DashboardPage() {
                     onClick={() => setPage((p) => p + 1)}
                   >
                     Next
+                    <ChevronRight size={15} />
                   </button>
                 </div>
               </>
