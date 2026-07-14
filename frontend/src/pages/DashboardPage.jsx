@@ -52,7 +52,7 @@ export default function DashboardPage() {
                   {Object.entries(counts).map(([k, v]) => (
                     <div key={k} className="queue-stat">
                       <dt>{k}</dt>
-                      <dd>{v}</dd>
+                      <dd className="mono">{v}</dd>
                     </div>
                   ))}
                 </dl>
@@ -95,11 +95,11 @@ export default function DashboardPage() {
                           {rule.triggerType} → {rule.actionType}
                         </td>
                         <td>{rule.isActive ? 'Yes' : 'No'}</td>
-                        <td>{rule.counts.EXECUTED}</td>
-                        <td>{rule.counts.SKIPPED_ONCE_PER_USER}</td>
-                        <td>{rule.counts.SKIPPED_COOLDOWN}</td>
-                        <td>{rule.counts.FAILED}</td>
-                        <td>{rule.total}</td>
+                        <td className="mono">{rule.counts.EXECUTED}</td>
+                        <td className="mono">{rule.counts.SKIPPED_ONCE_PER_USER}</td>
+                        <td className="mono">{rule.counts.SKIPPED_COOLDOWN}</td>
+                        <td className="mono">{rule.counts.FAILED}</td>
+                        <td className="mono">{rule.total}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -151,8 +151,8 @@ export default function DashboardPage() {
                     <tbody>
                       {logs.data.map((log) => (
                         <tr key={log.id}>
-                          <td>{log.ruleId}</td>
-                          <td>{log.instagramUserId}</td>
+                          <td className="mono">{log.ruleId}</td>
+                          <td className="mono">{log.instagramUserId}</td>
                           <td>
                             <span className={`status-badge ${log.outcome === 'EXECUTED' ? 'status-published' : log.outcome === 'FAILED' ? 'status-failed' : ''}`}>
                               {log.outcome}
