@@ -13,7 +13,7 @@ export default function AppLayout({ theme, onToggleTheme }) {
   return (
     <div className="app-shell">
       <header className="navbar">
-        <div className="brand">Social Media Manager</div>
+        <div className="brand">Postanta</div>
         <nav className="navbar-links">
           {NAV_ITEMS.map((item) => (
             <NavLink key={item.to} to={item.to} className={({ isActive }) => (isActive ? 'active' : '')}>
