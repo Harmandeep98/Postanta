@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, X, Pencil, Trash2, Clock, CheckCircle2, XCircle } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
+import { SkeletonRows } from '../components/Skeleton'
 
 const STATUS_ICON = {
   DRAFT: Pencil,
@@ -61,7 +62,6 @@ export default function PostsPage() {
   })
 
   if (!selectedAccountId) return <p>Select an account on the Accounts page first.</p>
-  if (isLoading) return <p>Loading posts…</p>
   if (error) return <p className="error">{error.message}</p>
 
   return (
@@ -83,7 +83,9 @@ export default function PostsPage() {
         />
       )}
 
-      {posts.length === 0 ? (
+      {isLoading ? (
+        <SkeletonRows count={3} />
+      ) : posts.length === 0 ? (
         <div className="empty-state">No scheduled posts yet.</div>
       ) : (
         <ul className="post-list">

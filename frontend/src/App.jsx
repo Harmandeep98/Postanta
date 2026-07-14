@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { ClerkProvider, SignedIn, SignedOut, SignIn, SignUp } from '@clerk/clerk-react'
 import { Moon, Sun } from 'lucide-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AccountProvider } from './context/AccountContext'
 import AppLayout from './layout/AppLayout'
-import AccountsPage from './pages/AccountsPage'
-import PostsPage from './pages/PostsPage'
-import AutomationsPage from './pages/AutomationsPage'
-import DashboardPage from './pages/DashboardPage'
+
+// Route-level splitting — each page ships its own chunk, fetched on first visit instead of upfront.
+const AccountsPage = lazy(() => import('./pages/AccountsPage'))
+const PostsPage = lazy(() => import('./pages/PostsPage'))
+const AutomationsPage = lazy(() => import('./pages/AutomationsPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 if (!publishableKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY')
@@ -64,17 +66,19 @@ function App() {
         <SignedIn>
           <QueryClientProvider client={queryClient}>
             <AccountProvider>
-              <Routes>
-                <Route element={<AppLayout theme={theme} onToggleTheme={toggleTheme} />}>
-                  <Route index element={<Navigate to="/accounts" replace />} />
-                  <Route path="/sign-in/*" element={<Navigate to="/accounts" replace />} />
-                  <Route path="/sign-up/*" element={<Navigate to="/accounts" replace />} />
-                  <Route path="accounts" element={<AccountsPage />} />
-                  <Route path="posts" element={<PostsPage />} />
-                  <Route path="automations" element={<AutomationsPage />} />
-                  <Route path="dashboard" element={<DashboardPage />} />
-                </Route>
-              </Routes>
+              <Suspense fallback={null}>
+                <Routes>
+                  <Route element={<AppLayout theme={theme} onToggleTheme={toggleTheme} />}>
+                    <Route index element={<Navigate to="/accounts" replace />} />
+                    <Route path="/sign-in/*" element={<Navigate to="/accounts" replace />} />
+                    <Route path="/sign-up/*" element={<Navigate to="/accounts" replace />} />
+                    <Route path="accounts" element={<AccountsPage />} />
+                    <Route path="posts" element={<PostsPage />} />
+                    <Route path="automations" element={<AutomationsPage />} />
+                    <Route path="dashboard" element={<DashboardPage />} />
+                  </Route>
+                </Routes>
+              </Suspense>
             </AccountProvider>
           </QueryClientProvider>
         </SignedIn>

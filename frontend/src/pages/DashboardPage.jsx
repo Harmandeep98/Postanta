@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   Send,
@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
+import { Skeleton, SkeletonRows, SkeletonStatGrid } from '../components/Skeleton'
 
 const OUTCOMES = ['EXECUTED', 'SKIPPED_ONCE_PER_USER', 'SKIPPED_COOLDOWN', 'FAILED']
 const QUEUE_LABEL = { automation: 'Automation', posts: 'Posts', tokenRefresh: 'Token Refresh' }
@@ -103,9 +104,14 @@ export default function DashboardPage() {
     enabled: !!selectedAccountId,
   })
 
-  const ruleById = new Map((analytics?.rules ?? []).map((r) => [r.ruleId, r]))
-  const messagesSent = (analytics?.rules ?? []).reduce((sum, r) => sum + r.counts.EXECUTED, 0)
-  const activeRules = (analytics?.rules ?? []).filter((r) => r.isActive).length
+  const { ruleById, messagesSent, activeRules } = useMemo(() => {
+    const rules = analytics?.rules ?? []
+    return {
+      ruleById: new Map(rules.map((r) => [r.ruleId, r])),
+      messagesSent: rules.reduce((sum, r) => sum + r.counts.EXECUTED, 0),
+      activeRules: rules.filter((r) => r.isActive).length,
+    }
+  }, [analytics])
 
   if (!selectedAccountId) {
     return <p>Select an account on the Accounts page to see your dashboard.</p>
@@ -116,7 +122,16 @@ export default function DashboardPage() {
       <h1>Dashboard</h1>
 
       {(analyticsLoading || postAnalyticsLoading) ? (
-        <p>Loading…</p>
+        <>
+          <section className="dash-section">
+            <h2>Posts</h2>
+            <SkeletonStatGrid count={7} />
+          </section>
+          <section className="dash-section">
+            <h2>Automations</h2>
+            <SkeletonStatGrid count={2} />
+          </section>
+        </>
       ) : (
         <>
           <section className="dash-section">
@@ -146,7 +161,7 @@ export default function DashboardPage() {
           <section className="dash-section">
             <h2>Recent Activity</h2>
             {!recentActivity ? (
-              <p>Loading…</p>
+              <SkeletonRows count={4} />
             ) : recentActivity.data.length === 0 ? (
               <div className="empty-state">No automation activity yet.</div>
             ) : (
@@ -171,7 +186,7 @@ export default function DashboardPage() {
       <section className="dash-section">
         <h2>Rule Analytics</h2>
         {analyticsLoading ? (
-          <p>Loading…</p>
+          <SkeletonRows count={3} />
         ) : analytics.rules.length === 0 ? (
           <div className="empty-state">No automation rules for this account yet.</div>
         ) : (
@@ -234,7 +249,7 @@ export default function DashboardPage() {
         </div>
 
         {logsLoading ? (
-          <p>Loading…</p>
+          <SkeletonRows count={5} />
         ) : logs.data.length === 0 ? (
           <div className="empty-state">No log entries match these filters.</div>
         ) : (
@@ -300,7 +315,11 @@ export default function DashboardPage() {
         </button>
         {showSystemStatus && (
           !queues ? (
-            <p>Loading…</p>
+            <div className="queue-grid">
+              {Array.from({ length: 3 }, (_, i) => (
+                <Skeleton key={i} style={{ height: 96 }} />
+              ))}
+            </div>
           ) : (
             <div className="queue-grid">
               {Object.entries(queues).map(([name, counts]) => {
