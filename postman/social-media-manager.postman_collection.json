@@ -229,6 +229,50 @@
           }
         }
       ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "GET /dashboard/analytics/rules — Rule outcome breakdown",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/analytics/rules?socialAccountId={{socialAccountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "analytics", "rules"],
+              "query": [{ "key": "socialAccountId", "value": "{{socialAccountId}}" }]
+            }
+          }
+        },
+        {
+          "name": "GET /dashboard/queues — Live BullMQ job counts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/queues",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "queues"]
+            }
+          }
+        },
+        {
+          "name": "GET /dashboard/rule-logs — Paginated execution log",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/rule-logs?socialAccountId={{socialAccountId}}&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "rule-logs"],
+              "query": [
+                { "key": "socialAccountId", "value": "{{socialAccountId}}" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }
