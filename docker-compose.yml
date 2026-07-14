@@ -17,32 +17,14 @@ services:
     env_file:
       - .env.local
     environment:
-      # Override .env.local values — these point to the Docker services, not localhost
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/social_manager
+      # DATABASE_URL comes from .env.local now (points at RDS) — only Redis still
+      # needs overriding to the Docker service hostname instead of localhost.
       REDIS_URL: redis://redis:6379
       NODE_ENV: development
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
     restart: unless-stopped
-
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: social_manager
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -57,6 +39,5 @@ services:
       retries: 5
 
 volumes:
-  postgres_data:
   redis_data:
   app_node_modules:
