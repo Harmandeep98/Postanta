@@ -5,8 +5,8 @@
   --text: #0f172a;
   --text-muted: #64748b;
   --border: #e2e8f0;
-  --accent: #0369a1;
-  --accent-hover: #075985;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
   --accent-2: #dc2626;
   --on-accent: #ffffff;
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 14px rgba(15, 23, 42, 0.06);
@@ -34,10 +34,10 @@
     --text: #f8fafc;
     --text-muted: #94a3b8;
     --border: #334155;
-    --accent: #38bdf8;
-    --accent-hover: #7dd3fc;
+    --accent: #a78bfa;
+    --accent-hover: #c4b5fd;
     --accent-2: #f87171;
-    --on-accent: #05202e;
+    --on-accent: #1e1033;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.4);
   }
 }
@@ -49,10 +49,10 @@
   --text: #f8fafc;
   --text-muted: #94a3b8;
   --border: #334155;
-  --accent: #38bdf8;
-  --accent-hover: #7dd3fc;
+  --accent: #a78bfa;
+  --accent-hover: #c4b5fd;
   --accent-2: #f87171;
-  --on-accent: #05202e;
+  --on-accent: #1e1033;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
@@ -63,8 +63,8 @@
   --text: #0f172a;
   --text-muted: #64748b;
   --border: #e2e8f0;
-  --accent: #0369a1;
-  --accent-hover: #075985;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
   --accent-2: #dc2626;
   --on-accent: #ffffff;
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 14px rgba(15, 23, 42, 0.06);
@@ -185,7 +185,7 @@ button.secondary.danger:hover:not(:disabled) {
   justify-content: center;
   gap: 32px;
   padding: 48px;
-  background: linear-gradient(160deg, var(--accent) 0%, #0f172a 100%);
+  background: linear-gradient(160deg, #7c3aed 0%, #db2777 55%, #f97316 100%);
   position: relative;
   overflow: hidden;
 }

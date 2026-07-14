@@ -15,8 +15,8 @@ export default function AuthIllustration() {
       {/* comment bubble with keyword highlight */}
       <g transform="translate(20 130)">
         <path d="M0 16C0 7.163 7.163 0 16 0H84C92.837 0 100 7.163 100 16V56C100 64.837 92.837 72 84 72H26L8 88V72H16C7.163 72 0 64.837 0 56V16Z" fill="white" fillOpacity="0.9" />
-        <rect x="16" y="20" width="68" height="8" rx="4" fill="#0369a1" fillOpacity="0.35" />
-        <rect x="16" y="36" width="44" height="8" rx="4" fill="#0369a1" fillOpacity="0.55" />
+        <rect x="16" y="20" width="68" height="8" rx="4" fill="#7c3aed" fillOpacity="0.35" />
+        <rect x="16" y="36" width="44" height="8" rx="4" fill="#7c3aed" fillOpacity="0.55" />
       </g>
 
       {/* auto-reply arrow */}
@@ -27,8 +27,8 @@ export default function AuthIllustration() {
       <g transform="translate(280 230)">
         <rect x="0" y="0" width="92" height="60" rx="16" fill="white" fillOpacity="0.9" />
         <path d="M8 60L8 76L26 60H8Z" fill="white" fillOpacity="0.9" />
-        <path d="M18 30L74 30" stroke="#0369a1" strokeOpacity="0.55" strokeWidth="6" strokeLinecap="round" />
-        <path d="M18 42L52 42" stroke="#0369a1" strokeOpacity="0.35" strokeWidth="6" strokeLinecap="round" />
+        <path d="M18 30L74 30" stroke="#7c3aed" strokeOpacity="0.55" strokeWidth="6" strokeLinecap="round" />
+        <path d="M18 42L52 42" stroke="#7c3aed" strokeOpacity="0.35" strokeWidth="6" strokeLinecap="round" />
       </g>
 
       {/* calendar chip top right */}

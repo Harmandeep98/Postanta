@@ -18,7 +18,7 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 if (!publishableKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY')
 
-const ACCENT = { light: '#0369a1', dark: '#38bdf8' }
+const ACCENT = { light: '#7c3aed', dark: '#a78bfa' }
 // Clerk's default copy reads "Sign in to {applicationName}" using the app's name
 // configured in the Clerk Dashboard, which still says the old placeholder name —
 // overriding the strings directly here is simpler than a dashboard rename dependency.
