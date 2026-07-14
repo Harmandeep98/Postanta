@@ -375,10 +375,10 @@
           <span class="label">200 RESPONSE</span>
           <pre class="code"><code>{
   "uploadUrl": "https://bucket.s3.amazonaws.com/...(presigned)",
-  "publicUrl": "https://bucket.s3.amazonaws.com/uploads/abc123.jpg"
+  "mediaUrl": "https://bucket.s3.amazonaws.com/uploads/abc123.jpg"
 }</code></pre>
         </div>
-        <p>PUT the raw file bytes to <code class="inline">uploadUrl</code>, then pass <code class="inline">publicUrl</code> as <code class="inline">mediaUrl</code> when scheduling a post.</p>
+        <p>PUT the raw file bytes to <code class="inline">uploadUrl</code>, then pass <code class="inline">mediaUrl</code> as-is when scheduling a post.</p>
       </div>
 
       <div class="endpoint" id="post-posts">
