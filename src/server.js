@@ -1,6 +1,7 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import { config } from './config.js'
+import { registerErrorHandler } from './errorHandler.js'
 import prismaPlugin from './plugins/prisma.js'
 import redisPlugin from './plugins/redis.js'
 import clerkPlugin from './plugins/clerk.js'
@@ -27,6 +28,8 @@ export async function build({ logger: loggerOpt, ...rest } = {}) {
     },
     ...rest,
   })
+
+  registerErrorHandler(fastify)
 
   await fastify.register(cors)
   await fastify.register(prismaPlugin)
