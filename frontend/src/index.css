@@ -415,3 +415,116 @@ button.secondary:hover:not(:disabled) {
   color: var(--accent-2);
   font-weight: 550;
 }
+
+/* --- dashboard --- */
+
+.dash-section {
+  margin-bottom: 36px;
+}
+
+.dash-section h2 {
+  font-size: 15px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 12px;
+}
+
+.queue-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.queue-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 14px 18px;
+}
+
+.queue-card h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.queue-card dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+}
+
+.queue-stat {
+  display: contents;
+}
+
+.queue-stat dt {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.queue-stat dd {
+  margin: 0;
+  font-weight: 650;
+  text-align: right;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.dash-table th,
+.dash-table td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.dash-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.dash-table tr:last-child td {
+  border-bottom: none;
+}
+
+.log-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.log-filters select {
+  font: inherit;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
