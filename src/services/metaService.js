@@ -138,6 +138,20 @@ export async function getMediaMetrics(mediaId, accessToken) {
   }
 }
 
+const MEDIA_METRICS_CACHE_TTL_SECONDS = 600
+
+// Insights don't change second-to-second and Meta rate-limits the Graph API —
+// cache per media ID so a dashboard reload doesn't re-hit Meta for every post.
+export async function getMediaMetricsCached(mediaId, accessToken, redis) {
+  const cacheKey = `media-metrics:${mediaId}`
+  const cached = await redis.get(cacheKey)
+  if (cached) return JSON.parse(cached)
+
+  const metrics = await getMediaMetrics(mediaId, accessToken)
+  await redis.set(cacheKey, JSON.stringify(metrics), 'EX', MEDIA_METRICS_CACHE_TTL_SECONDS)
+  return metrics
+}
+
 export async function publishContainer(instagramAccountId, accessToken, containerId) {
   const url = new URL(`${GRAPH_URL}/${instagramAccountId}/media_publish`)
   url.searchParams.set('access_token', accessToken)

@@ -14,7 +14,9 @@ const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 if (!publishableKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY')
 
 const ACCENT = { light: '#0369a1', dark: '#38bdf8' }
-const queryClient = new QueryClient()
+// staleTime avoids an instant refetch on every remount/navigation/window-focus —
+// data is treated as fresh for 30s before TanStack Query bothers hitting the API again.
+const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000 } } })
 
 function useTheme() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light')
