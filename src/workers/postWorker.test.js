@@ -57,7 +57,7 @@ describe('publishPost', () => {
     expect(metaService.publishContainer).toHaveBeenCalledWith('17841000', 'valid-token', 'container-1')
     expect(mockPrismaUpdate).toHaveBeenCalledWith({
       where: { id: 'post-1' },
-      data: { status: 'PUBLISHED' },
+      data: { status: 'PUBLISHED', instagramMediaId: 'media-id-1' },
     })
   })
 
@@ -81,7 +81,7 @@ describe('publishPost', () => {
     expect(metaService.getContainerStatus).toHaveBeenCalledTimes(2)
     expect(mockPrismaUpdate).toHaveBeenCalledWith({
       where: { id: 'post-2' },
-      data: { status: 'PUBLISHED' },
+      data: { status: 'PUBLISHED', instagramMediaId: 'media-id-2' },
     })
   })
 

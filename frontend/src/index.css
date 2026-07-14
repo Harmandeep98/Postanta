@@ -568,3 +568,102 @@ button.secondary.danger:hover:not(:disabled) {
   font-size: 13px;
   color: var(--text-muted);
 }
+
+/* --- dashboard KPI cards --- */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* --- activity feed --- */
+
+.activity-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 14px;
+}
+
+.activity-item span:first-of-type {
+  flex: 1;
+}
+
+.activity-item.activity-ok {
+  color: var(--text);
+}
+
+.activity-item.activity-ok svg {
+  color: #16a34a;
+}
+
+.activity-item.activity-bad svg {
+  color: var(--accent-2);
+}
+
+.activity-item.activity-neutral svg {
+  color: var(--text-muted);
+}
+
+/* --- system status (collapsed) --- */
+
+.system-status-toggle {
+  margin-bottom: 12px;
+}
+
+.system-status-toggle svg {
+  transition: transform 0.15s ease;
+}
+
+.system-status-toggle svg.chevron-open {
+  transform: rotate(180deg);
+}
