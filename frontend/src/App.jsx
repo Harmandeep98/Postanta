@@ -1,10 +1,12 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { ClerkProvider, SignedIn, SignedOut, SignIn, SignUp } from '@clerk/clerk-react'
 import { Moon, Sun } from 'lucide-react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AccountProvider } from './context/AccountContext'
 import AppLayout from './layout/AppLayout'
+import ToastContainer from './components/ToastContainer'
+import { pushToast } from './lib/toast'
 
 // Route-level splitting — each page ships its own chunk, fetched on first visit instead of upfront.
 const AccountsPage = lazy(() => import('./pages/AccountsPage'))
@@ -18,7 +20,12 @@ if (!publishableKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY')
 const ACCENT = { light: '#0369a1', dark: '#38bdf8' }
 // staleTime avoids an instant refetch on every remount/navigation/window-focus —
 // data is treated as fresh for 30s before TanStack Query bothers hitting the API again.
-const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000 } } })
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 30_000 } },
+  mutationCache: new MutationCache({
+    onError: (err) => pushToast(err.message || 'Something went wrong'),
+  }),
+})
 
 function useTheme() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light')
@@ -37,6 +44,7 @@ function App() {
 
   return (
     <ClerkProvider publishableKey={publishableKey} appearance={{ variables: { colorPrimary: ACCENT[theme] } }}>
+      <ToastContainer />
       <BrowserRouter>
         <SignedOut>
           <button type="button" className="theme-toggle" onClick={toggleTheme} aria-label="Toggle dark mode">
