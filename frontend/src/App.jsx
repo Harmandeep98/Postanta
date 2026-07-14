@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ClerkProvider, SignedIn, SignedOut, SignIn, SignUp } from '@clerk/clerk-react'
+import { Moon, Sun } from 'lucide-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AccountProvider } from './context/AccountContext'
@@ -12,7 +13,7 @@ import DashboardPage from './pages/DashboardPage'
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 if (!publishableKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY')
 
-const ACCENT = { light: '#66bfbf', dark: '#7fd1d1' }
+const ACCENT = { light: '#0369a1', dark: '#38bdf8' }
 const queryClient = new QueryClient()
 
 function useTheme() {
@@ -35,7 +36,7 @@ function App() {
       <BrowserRouter>
         <SignedOut>
           <button type="button" className="theme-toggle" onClick={toggleTheme} aria-label="Toggle dark mode">
-            {theme === 'light' ? '🌙' : '☀️'}
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
           <Routes>
             <Route

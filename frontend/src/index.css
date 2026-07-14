@@ -1,16 +1,17 @@
 :root {
-  --bg: #fcfefe;
+  --bg: #f8fafc;
   --surface: #ffffff;
-  --surface-sunken: #eaf6f6;
-  --text: #12302f;
-  --text-muted: #6b8988;
-  --border: #dcedec;
-  --accent: #66bfbf;
-  --accent-hover: #56acac;
-  --accent-2: #f76b8a;
-  --shadow: 0 1px 2px rgba(18, 48, 47, 0.04), 0 4px 14px rgba(18, 48, 47, 0.06);
+  --surface-sunken: #f1f5f9;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --accent: #0369a1;
+  --accent-hover: #075985;
+  --accent-2: #dc2626;
+  --on-accent: #ffffff;
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 14px rgba(15, 23, 42, 0.06);
 
-  font: 15px/1.5 -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+  font: 15px/1.5 'Fira Sans', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
   color-scheme: light dark;
   color: var(--text);
   background: var(--bg);
@@ -20,45 +21,53 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.mono {
+  font-family: 'Fira Code', ui-monospace, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0e1716;
-    --surface: #16211f;
-    --surface-sunken: #10201e;
-    --text: #e7f3f2;
-    --text-muted: #8fa8a6;
-    --border: #24322f;
-    --accent: #7fd1d1;
-    --accent-hover: #94dada;
-    --accent-2: #ff8aa3;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.35);
+    --bg: #020617;
+    --surface: #0e1223;
+    --surface-sunken: #0b0f1d;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: #334155;
+    --accent: #38bdf8;
+    --accent-hover: #7dd3fc;
+    --accent-2: #f87171;
+    --on-accent: #05202e;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.4);
   }
 }
 
 :root[data-theme='dark'] {
-  --bg: #0e1716;
-  --surface: #16211f;
-  --surface-sunken: #10201e;
-  --text: #e7f3f2;
-  --text-muted: #8fa8a6;
-  --border: #24322f;
-  --accent: #7fd1d1;
-  --accent-hover: #94dada;
-  --accent-2: #ff8aa3;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.35);
+  --bg: #020617;
+  --surface: #0e1223;
+  --surface-sunken: #0b0f1d;
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --accent: #38bdf8;
+  --accent-hover: #7dd3fc;
+  --accent-2: #f87171;
+  --on-accent: #05202e;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
 :root[data-theme='light'] {
-  --bg: #fcfefe;
+  --bg: #f8fafc;
   --surface: #ffffff;
-  --surface-sunken: #eaf6f6;
-  --text: #12302f;
-  --text-muted: #6b8988;
-  --border: #dcedec;
-  --accent: #66bfbf;
-  --accent-hover: #56acac;
-  --accent-2: #f76b8a;
-  --shadow: 0 1px 2px rgba(18, 48, 47, 0.04), 0 4px 14px rgba(18, 48, 47, 0.06);
+  --surface-sunken: #f1f5f9;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --accent: #0369a1;
+  --accent-hover: #075985;
+  --accent-2: #dc2626;
+  --on-accent: #ffffff;
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 14px rgba(15, 23, 42, 0.06);
 }
 
 * {
@@ -85,11 +94,14 @@ a {
 }
 
 button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font: inherit;
   font-weight: 550;
   border: none;
   background: var(--accent);
-  color: #05201f;
+  color: var(--on-accent);
   border-radius: 8px;
   padding: 9px 16px;
   cursor: pointer;
@@ -120,6 +132,15 @@ button.secondary:hover:not(:disabled) {
   color: var(--accent-2);
 }
 
+button.secondary.danger {
+  color: var(--accent-2);
+  border-color: color-mix(in srgb, var(--accent-2) 35%, var(--border));
+}
+
+button.secondary.danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-2) 10%, var(--surface));
+}
+
 /* --- auth (signed out) --- */
 
 .theme-toggle {
@@ -127,6 +148,9 @@ button.secondary:hover:not(:disabled) {
   top: 16px;
   right: 16px;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
@@ -223,6 +247,9 @@ button.secondary:hover:not(:disabled) {
 }
 
 .theme-toggle-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text);
@@ -330,9 +357,16 @@ button.secondary:hover:not(:disabled) {
 }
 
 .post-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   margin: 0;
   color: var(--text-muted);
   font-size: 13px;
+}
+
+.post-meta.success-text {
+  color: #16a34a;
 }
 
 .post-actions {
@@ -342,7 +376,9 @@ button.secondary:hover:not(:disabled) {
 }
 
 .status-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
   font-weight: 650;
   padding: 3px 10px;
@@ -445,8 +481,12 @@ button.secondary:hover:not(:disabled) {
 }
 
 .queue-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin: 0 0 8px;
   font-size: 14px;
+  color: var(--accent);
 }
 
 .queue-card dl {

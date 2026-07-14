@@ -1,10 +1,18 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Zap, CalendarClock, RefreshCw, CheckCircle2, XCircle, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
 
 const OUTCOMES = ['EXECUTED', 'SKIPPED_ONCE_PER_USER', 'SKIPPED_COOLDOWN', 'FAILED']
 const QUEUE_LABEL = { automation: 'Automation', posts: 'Posts', tokenRefresh: 'Token Refresh' }
+const QUEUE_ICON = { automation: Zap, posts: CalendarClock, tokenRefresh: RefreshCw }
+const OUTCOME_ICON = {
+  EXECUTED: CheckCircle2,
+  FAILED: XCircle,
+  SKIPPED_ONCE_PER_USER: Clock,
+  SKIPPED_COOLDOWN: Clock,
+}
 
 export default function DashboardPage() {
   const api = useApiClient()
@@ -45,19 +53,25 @@ export default function DashboardPage() {
           <p>Loading…</p>
         ) : (
           <div className="queue-grid">
-            {Object.entries(queues).map(([name, counts]) => (
+            {Object.entries(queues).map(([name, counts]) => {
+              const QueueIcon = QUEUE_ICON[name]
+              return (
               <div key={name} className="queue-card">
-                <h3>{QUEUE_LABEL[name] ?? name}</h3>
+                <h3>
+                  {QueueIcon && <QueueIcon size={15} />}
+                  {QUEUE_LABEL[name] ?? name}
+                </h3>
                 <dl>
                   {Object.entries(counts).map(([k, v]) => (
                     <div key={k} className="queue-stat">
                       <dt>{k}</dt>
-                      <dd>{v}</dd>
+                      <dd className="mono">{v}</dd>
                     </div>
                   ))}
                 </dl>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </section>
@@ -95,11 +109,11 @@ export default function DashboardPage() {
                           {rule.triggerType} → {rule.actionType}
                         </td>
                         <td>{rule.isActive ? 'Yes' : 'No'}</td>
-                        <td>{rule.counts.EXECUTED}</td>
-                        <td>{rule.counts.SKIPPED_ONCE_PER_USER}</td>
-                        <td>{rule.counts.SKIPPED_COOLDOWN}</td>
-                        <td>{rule.counts.FAILED}</td>
-                        <td>{rule.total}</td>
+                        <td className="mono">{rule.counts.EXECUTED}</td>
+                        <td className="mono">{rule.counts.SKIPPED_ONCE_PER_USER}</td>
+                        <td className="mono">{rule.counts.SKIPPED_COOLDOWN}</td>
+                        <td className="mono">{rule.counts.FAILED}</td>
+                        <td className="mono">{rule.total}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -151,10 +165,14 @@ export default function DashboardPage() {
                     <tbody>
                       {logs.data.map((log) => (
                         <tr key={log.id}>
-                          <td>{log.ruleId}</td>
-                          <td>{log.instagramUserId}</td>
+                          <td className="mono">{log.ruleId}</td>
+                          <td className="mono">{log.instagramUserId}</td>
                           <td>
                             <span className={`status-badge ${log.outcome === 'EXECUTED' ? 'status-published' : log.outcome === 'FAILED' ? 'status-failed' : ''}`}>
+                              {(() => {
+                                const OutcomeIcon = OUTCOME_ICON[log.outcome]
+                                return <OutcomeIcon size={13} />
+                              })()}
                               {log.outcome}
                             </span>
                           </td>
@@ -167,6 +185,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="pagination">
                   <button type="button" className="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+                    <ChevronLeft size={15} />
                     Prev
                   </button>
                   <span>
@@ -179,6 +198,7 @@ export default function DashboardPage() {
                     onClick={() => setPage((p) => p + 1)}
                   >
                     Next
+                    <ChevronRight size={15} />
                   </button>
                 </div>
               </>
