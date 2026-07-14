@@ -176,41 +176,43 @@ button.secondary.danger:hover:not(:disabled) {
 /* --- app shell --- */
 
 .app-shell {
-  display: grid;
-  grid-template-columns: 232px 1fr;
-  min-height: 100svh;
-}
-
-.sidebar {
-  background: var(--surface-sunken);
-  border-right: 1px solid var(--border);
-  padding: 24px 16px;
   display: flex;
   flex-direction: column;
+  min-height: 100svh;
+  background: var(--bg);
 }
 
-.sidebar .brand {
+.navbar {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 12px 28px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.navbar .brand {
   font-weight: 700;
   font-size: 16px;
   letter-spacing: -0.01em;
-  margin-bottom: 28px;
-  padding: 0 10px;
+  white-space: nowrap;
 }
 
-.sidebar ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.sidebar a {
+.navbar-links {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
+  gap: 4px;
+  flex: 1;
+}
+
+.navbar-links a {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
   border-radius: 8px;
   color: var(--text-muted);
   text-decoration: none;
@@ -219,31 +221,21 @@ button.secondary.danger:hover:not(:disabled) {
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.sidebar a:hover {
-  background: var(--surface);
+.navbar-links a:hover {
+  background: var(--surface-sunken);
   color: var(--text);
 }
 
-.sidebar a.active {
-  background: var(--surface);
+.navbar-links a.active {
+  background: var(--surface-sunken);
   color: var(--accent);
-  box-shadow: var(--shadow);
 }
 
-.content-area {
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
-}
-
-.app-header {
+.navbar-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 12px;
-  padding: 14px 28px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  flex-shrink: 0;
 }
 
 .theme-toggle-inline {
@@ -267,8 +259,9 @@ button.secondary.danger:hover:not(:disabled) {
 .page {
   padding: 32px;
   flex: 1;
-  max-width: 900px;
+  max-width: 1000px;
   width: 100%;
+  margin: 0 auto;
 }
 
 .page-header {
