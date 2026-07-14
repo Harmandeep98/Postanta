@@ -12,30 +12,26 @@ const NAV_ITEMS = [
 export default function AppLayout({ theme, onToggleTheme }) {
   return (
     <div className="app-shell">
-      <nav className="sidebar">
+      <header className="navbar">
         <div className="brand">Social Media Manager</div>
-        <ul>
+        <nav className="navbar-links">
           {NAV_ITEMS.map((item) => (
-            <li key={item.to}>
-              <NavLink to={item.to} className={({ isActive }) => (isActive ? 'active' : '')}>
-                <item.icon size={18} strokeWidth={2} aria-hidden="true" />
-                {item.label}
-              </NavLink>
-            </li>
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => (isActive ? 'active' : '')}>
+              <item.icon size={17} strokeWidth={2} aria-hidden="true" />
+              {item.label}
+            </NavLink>
           ))}
-        </ul>
-      </nav>
-      <div className="content-area">
-        <header className="app-header">
+        </nav>
+        <div className="navbar-actions">
           <button type="button" className="theme-toggle-inline" onClick={onToggleTheme} aria-label="Toggle dark mode">
             {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
           </button>
           <UserButton />
-        </header>
-        <main className="page">
-          <Outlet />
-        </main>
-      </div>
+        </div>
+      </header>
+      <main className="page">
+        <Outlet />
+      </main>
     </div>
   )
 }
