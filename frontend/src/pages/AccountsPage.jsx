@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link2, Trash2 } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
+import { SkeletonRows } from '../components/Skeleton'
 
 export default function AccountsPage() {
   const api = useApiClient()
@@ -28,20 +29,21 @@ export default function AccountsPage() {
     },
   })
 
-  if (isLoading) return <p>Loading accounts…</p>
   if (error) return <p className="error">{error.message}</p>
 
   return (
     <div>
       <div className="page-header">
         <h1>Accounts</h1>
-        <button type="button" onClick={() => connect.mutate()} disabled={connect.isPending}>
+        <button type="button" onClick={() => connect.mutate()} disabled={connect.isPending || isLoading}>
           <Link2 size={16} />
           {connect.isPending ? 'Redirecting…' : 'Connect Instagram'}
         </button>
       </div>
 
-      {accounts.length === 0 ? (
+      {isLoading ? (
+        <SkeletonRows count={3} />
+      ) : accounts.length === 0 ? (
         <div className="empty-state">No connected accounts yet — click "Connect Instagram" above.</div>
       ) : (
         <ul className="account-list">
