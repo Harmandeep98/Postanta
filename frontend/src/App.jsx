@@ -55,7 +55,10 @@ function App() {
               path="/sign-up/*"
               element={
                 <div className="auth-shell">
-                  <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" />
+                  <div className="auth-content">
+                    <img src="/logo.png" alt="Postanta" className="auth-logo" />
+                    <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" />
+                  </div>
                 </div>
               }
             />
@@ -63,7 +66,10 @@ function App() {
               path="/sign-in/*"
               element={
                 <div className="auth-shell">
-                  <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
+                  <div className="auth-content">
+                    <img src="/logo.png" alt="Postanta" className="auth-logo" />
+                    <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
+                  </div>
                 </div>
               }
             />
