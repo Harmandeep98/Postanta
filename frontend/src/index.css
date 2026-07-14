@@ -380,13 +380,35 @@ button.secondary:hover:not(:disabled) {
 }
 
 .post-form textarea,
-.post-form input {
+.post-form input,
+.post-form select {
   font: inherit;
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 10px;
+}
+
+.post-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--text-muted);
+}
+
+.post-form label.checkbox-label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.post-form input[type='checkbox'] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
 }
 
 .error {
