@@ -15,10 +15,15 @@ import {
   ChevronRight,
   ChevronDown,
   RefreshCw,
+  Compass,
+  Sparkles,
+  Wand2,
+  SearchX,
 } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
 import { Skeleton, SkeletonRows, SkeletonStatGrid } from '../components/Skeleton'
+import EmptyState from '../components/EmptyState'
 
 const OUTCOMES = ['EXECUTED', 'SKIPPED_ONCE_PER_USER', 'SKIPPED_COOLDOWN', 'FAILED']
 const QUEUE_LABEL = { automation: 'Automation', posts: 'Posts', tokenRefresh: 'Token Refresh' }
@@ -114,7 +119,15 @@ export default function DashboardPage() {
   }, [analytics])
 
   if (!selectedAccountId) {
-    return <p>Select an account on the Accounts page to see your dashboard.</p>
+    return (
+      <EmptyState
+        icon={Compass}
+        title="No account selected"
+        description="Pick an Instagram account to see your dashboard."
+        actionTo="/accounts"
+        actionLabel="Go to Accounts"
+      />
+    )
   }
 
   return (
@@ -163,7 +176,7 @@ export default function DashboardPage() {
             {!recentActivity ? (
               <SkeletonRows count={4} />
             ) : recentActivity.data.length === 0 ? (
-              <div className="empty-state">No automation activity yet.</div>
+              <EmptyState icon={Sparkles} title="No automation activity yet" description="Triggered rules will show up here." />
             ) : (
               <ul className="activity-feed">
                 {recentActivity.data.map((log) => {
@@ -188,7 +201,13 @@ export default function DashboardPage() {
         {analyticsLoading ? (
           <SkeletonRows count={3} />
         ) : analytics.rules.length === 0 ? (
-          <div className="empty-state">No automation rules for this account yet.</div>
+          <EmptyState
+            icon={Wand2}
+            title="No automation rules for this account yet"
+            description="Create one on the Automations page."
+            actionTo="/automations"
+            actionLabel="Go to Automations"
+          />
         ) : (
           <div className="table-scroll">
             <table className="dash-table">
@@ -251,7 +270,7 @@ export default function DashboardPage() {
         {logsLoading ? (
           <SkeletonRows count={5} />
         ) : logs.data.length === 0 ? (
-          <div className="empty-state">No log entries match these filters.</div>
+          <EmptyState icon={SearchX} title="No log entries match these filters" description="Try a different rule or outcome." />
         ) : (
           <>
             <div className="table-scroll">
