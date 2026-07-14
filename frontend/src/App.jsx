@@ -12,7 +12,7 @@ import DashboardPage from './pages/DashboardPage'
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 if (!publishableKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY')
 
-const ACCENT = { light: '#66bfbf', dark: '#7fd1d1' }
+const ACCENT = { light: '#0369a1', dark: '#38bdf8' }
 const queryClient = new QueryClient()
 
 function useTheme() {
