@@ -13,8 +13,6 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
-  RefreshCw,
   Compass,
   Sparkles,
   Wand2,
@@ -22,12 +20,10 @@ import {
 } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
-import { Skeleton, SkeletonRows, SkeletonStatGrid } from '../components/Skeleton'
+import { SkeletonRows, SkeletonStatGrid } from '../components/Skeleton'
 import EmptyState from '../components/EmptyState'
 
 const OUTCOMES = ['EXECUTED', 'SKIPPED_ONCE_PER_USER', 'SKIPPED_COOLDOWN', 'FAILED']
-const QUEUE_LABEL = { automation: 'Automation', posts: 'Posts', tokenRefresh: 'Token Refresh' }
-const QUEUE_ICON = { automation: Zap, posts: CalendarClock, tokenRefresh: RefreshCw }
 const OUTCOME_ICON = {
   EXECUTED: CheckCircle2,
   FAILED: XCircle,
@@ -73,13 +69,6 @@ export default function DashboardPage() {
   const [ruleFilter, setRuleFilter] = useState('')
   const [outcomeFilter, setOutcomeFilter] = useState('')
   const [page, setPage] = useState(1)
-  const [showSystemStatus, setShowSystemStatus] = useState(false)
-
-  const { data: queues } = useQuery({
-    queryKey: ['dashboard-queues'],
-    queryFn: () => api.get('/dashboard/queues'),
-    refetchInterval: 10000,
-  })
 
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ['dashboard-analytics', selectedAccountId],
@@ -324,44 +313,6 @@ export default function DashboardPage() {
               </button>
             </div>
           </>
-        )}
-      </section>
-
-      <section className="dash-section">
-        <button type="button" className="secondary system-status-toggle" onClick={() => setShowSystemStatus((v) => !v)}>
-          <ChevronDown size={15} className={showSystemStatus ? 'chevron-open' : ''} />
-          System status (for debugging)
-        </button>
-        {showSystemStatus && (
-          !queues ? (
-            <div className="queue-grid">
-              {Array.from({ length: 3 }, (_, i) => (
-                <Skeleton key={i} style={{ height: 96 }} />
-              ))}
-            </div>
-          ) : (
-            <div className="queue-grid">
-              {Object.entries(queues).map(([name, counts]) => {
-                const QueueIcon = QUEUE_ICON[name]
-                return (
-                  <div key={name} className="queue-card">
-                    <h3>
-                      {QueueIcon && <QueueIcon size={15} />}
-                      {QUEUE_LABEL[name] ?? name}
-                    </h3>
-                    <dl>
-                      {Object.entries(counts).map(([k, v]) => (
-                        <div key={k} className="queue-stat">
-                          <dt>{k}</dt>
-                          <dd className="mono">{v}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  </div>
-                )
-              })}
-            </div>
-          )
         )}
       </section>
     </div>
