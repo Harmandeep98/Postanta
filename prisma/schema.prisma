@@ -82,7 +82,7 @@ model ScheduledPost {
   socialAccount   SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
 
   caption         String
-  mediaUrl        String?       // image/video URL to upload
+  mediaUrls       String[]      @default([]) // 1 = single photo/reel, 2-10 = carousel
   scheduledAt     DateTime
   status          PostStatus    @default(SCHEDULED)
   bullJobId       String?       // BullMQ job ID for cancellation

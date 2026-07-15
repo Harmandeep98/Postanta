@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, X, Pencil, Trash2, Clock, CheckCircle2, XCircle, Compass, CalendarPlus } from 'lucide-react'
+import { Plus, X, Pencil, Trash2, Clock, CheckCircle2, XCircle, Compass, CalendarPlus, Images } from 'lucide-react'
 import { useApiClient } from '../lib/api'
 import { useSelectedAccount } from '../context/AccountContext'
 import { SkeletonRows } from '../components/Skeleton'
@@ -127,6 +127,12 @@ export default function PostsPage() {
                       })()}
                       {STATUS_LABEL[post.status]}
                     </span>
+                    {post.mediaUrls?.length > 1 && (
+                      <span className="status-badge">
+                        <Images size={13} />
+                        Carousel ({post.mediaUrls.length})
+                      </span>
+                    )}
                     <p className="post-caption">{post.caption || <em>No caption</em>}</p>
                     <p className="post-meta">{new Date(post.scheduledAt).toLocaleString()}</p>
                     {post.errorMessage && <p className="error">{post.errorMessage}</p>}
@@ -158,23 +164,37 @@ export default function PostsPage() {
   )
 }
 
+const MAX_CAROUSEL_ITEMS = 10
+
 function PostForm({ initial, submitLabel, onSubmit, onCancel, pending }) {
   const api = useApiClient()
   const [caption, setCaption] = useState(initial?.caption ?? '')
-  const [mediaUrl, setMediaUrl] = useState(initial?.mediaUrl ?? '')
+  const [mediaItems, setMediaItems] = useState(
+    (initial?.mediaUrls ?? []).map((url) => ({ url, name: url.split('/').pop() })),
+  )
   const [scheduledAt, setScheduledAt] = useState(initial ? toLocalInputValue(initial.scheduledAt) : '')
   const [uploading, setUploading] = useState(false)
 
-  async function handleFile(e) {
-    const file = e.target.files[0]
-    if (!file) return
+  async function handleFiles(e) {
+    const files = Array.from(e.target.files)
+    e.target.value = ''
+    if (!files.length) return
+    if (mediaItems.length + files.length > MAX_CAROUSEL_ITEMS) {
+      pushToast(`A post can have at most ${MAX_CAROUSEL_ITEMS} media items`)
+      return
+    }
     setUploading(true)
     try {
-      const { uploadUrl, mediaUrl: publicUrl } = await api.get(
-        `/media/upload-url?contentType=${encodeURIComponent(file.type)}`,
+      const uploaded = await Promise.all(
+        files.map(async (file) => {
+          const { uploadUrl, mediaUrl } = await api.get(
+            `/media/upload-url?contentType=${encodeURIComponent(file.type)}`,
+          )
+          await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } })
+          return { url: mediaUrl, name: file.name }
+        }),
       )
-      await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } })
-      setMediaUrl(publicUrl)
+      setMediaItems((prev) => [...prev, ...uploaded])
     } catch (err) {
       pushToast(err.message)
     } finally {
@@ -182,19 +202,47 @@ function PostForm({ initial, submitLabel, onSubmit, onCancel, pending }) {
     }
   }
 
+  function removeMediaItem(url) {
+    setMediaItems((prev) => prev.filter((item) => item.url !== url))
+  }
+
   function handleSubmit(e) {
     e.preventDefault()
-    onSubmit({ caption, mediaUrl: mediaUrl || undefined, scheduledAt: new Date(scheduledAt).toISOString() })
+    onSubmit({
+      caption,
+      mediaUrls: mediaItems.length ? mediaItems.map((item) => item.url) : undefined,
+      scheduledAt: new Date(scheduledAt).toISOString(),
+    })
   }
 
   return (
     <form className="post-form" onSubmit={handleSubmit}>
       <textarea placeholder="Caption" value={caption} onChange={(e) => setCaption(e.target.value)} rows={3} />
-      <input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime" onChange={handleFile} disabled={uploading} />
-      {mediaUrl && (
-        <p className="post-meta success-text">
-          <CheckCircle2 size={14} /> Media attached
-        </p>
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
+        multiple
+        onChange={handleFiles}
+        disabled={uploading || mediaItems.length >= MAX_CAROUSEL_ITEMS}
+      />
+      <p className="post-meta">
+        {mediaItems.length === 0 && 'No media attached yet'}
+        {mediaItems.length === 1 && 'Single photo/reel'}
+        {mediaItems.length > 1 && `Carousel — ${mediaItems.length} items`}
+        {mediaItems.length >= 2 && ` (max ${MAX_CAROUSEL_ITEMS})`}
+      </p>
+      {mediaItems.length > 0 && (
+        <ul className="media-item-list">
+          {mediaItems.map((item) => (
+            <li key={item.url}>
+              <CheckCircle2 size={14} />
+              <span>{item.name}</span>
+              <button type="button" className="secondary danger" onClick={() => removeMediaItem(item.url)}>
+                <X size={13} />
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
       <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} required />
       <div className="post-actions">

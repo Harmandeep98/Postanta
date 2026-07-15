@@ -76,7 +76,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"socialAccountId\": \"{{socialAccountId}}\",\n  \"caption\": \"Hello world! #instagram\",\n  \"mediaUrl\": \"https://your-s3-bucket.s3.amazonaws.com/image.jpg\",\n  \"scheduledAt\": \"2026-07-01T10:00:00.000Z\"\n}"
+              "raw": "{\n  \"socialAccountId\": \"{{socialAccountId}}\",\n  \"caption\": \"Hello world! #instagram\",\n  \"mediaUrls\": [\"https://your-s3-bucket.s3.amazonaws.com/image.jpg\"],\n  \"scheduledAt\": \"2026-07-01T10:00:00.000Z\"\n}"
             },
             "url": { "raw": "{{baseUrl}}/posts", "host": ["{{baseUrl}}"], "path": ["posts"] }
           }

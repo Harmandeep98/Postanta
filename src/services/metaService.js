@@ -104,6 +104,31 @@ export async function createVideoContainer(instagramAccountId, accessToken, { vi
   return data.id
 }
 
+// Carousel children use media_type VIDEO, not REELS — Reels can't be nested in a carousel.
+export async function createCarouselItemContainer(instagramAccountId, accessToken, { mediaUrl, isVideo }) {
+  const url = new URL(`${GRAPH_URL}/${instagramAccountId}/media`)
+  url.searchParams.set('access_token', accessToken)
+  url.searchParams.set('is_carousel_item', 'true')
+  if (isVideo) {
+    url.searchParams.set('video_url', mediaUrl)
+    url.searchParams.set('media_type', 'VIDEO')
+  } else {
+    url.searchParams.set('image_url', mediaUrl)
+  }
+  const data = await graphFetch(url, { method: 'POST' })
+  return data.id
+}
+
+export async function createCarouselContainer(instagramAccountId, accessToken, { childContainerIds, caption }) {
+  const url = new URL(`${GRAPH_URL}/${instagramAccountId}/media`)
+  url.searchParams.set('access_token', accessToken)
+  url.searchParams.set('media_type', 'CAROUSEL')
+  url.searchParams.set('children', childContainerIds.join(','))
+  if (caption) url.searchParams.set('caption', caption)
+  const data = await graphFetch(url, { method: 'POST' })
+  return data.id
+}
+
 export async function getContainerStatus(containerId, accessToken) {
   const url = new URL(`${GRAPH_URL}/${containerId}`)
   url.searchParams.set('fields', 'status_code')

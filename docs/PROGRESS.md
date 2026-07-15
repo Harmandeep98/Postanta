@@ -9,7 +9,7 @@ Fastify + pino, Prisma + PostgreSQL, Redis/BullMQ, Clerk auth plugin, health rou
 Meta OAuth flow, token storage in `SocialAccount`, token refresh worker (BullMQ cron), `GET /accounts`.
 
 ### Phase 3 — Scheduled Posts
-`ScheduledPost` schema, `POST /posts` schedule endpoint, BullMQ delayed jobs, `postWorker` publishes via Meta Graph API.
+`ScheduledPost` schema, `POST /posts` schedule endpoint, BullMQ delayed jobs, `postWorker` publishes via Meta Graph API. Supports single photo, single reel (video), and carousels (2-10 mixed image/video items) — `ScheduledPost.mediaUrls` is an array; carousel children are created and (for videos) polled in parallel before the parent carousel container is published.
 
 ### Phase 4 — Rule Engine
 `AutomationRule` schema, `POST /webhooks/meta` (HMAC-SHA256 verified, fire-and-forget), `ruleEngineService` (keyword match + cooldown + once-per-user), `automationWorker` (concurrency: 10), automations CRUD endpoints.

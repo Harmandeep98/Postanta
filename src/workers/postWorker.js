@@ -37,16 +37,35 @@ export async function publishPost(job, prisma, log, { pollIntervalMs = 5000 } = 
 
   try {
     let mediaId
-    if (isVideo(post.mediaUrl)) {
+    if (post.mediaUrls.length > 1) {
+      // Carousel: children are created and (for videos) polled in parallel — each is an
+      // independent Graph API call, no reason to wait on one before starting the next.
+      const childIds = await Promise.all(
+        post.mediaUrls.map(async (mediaUrl) => {
+          const video = isVideo(mediaUrl)
+          const containerId = await metaService.createCarouselItemContainer(instagramAccountId, accessToken, {
+            mediaUrl,
+            isVideo: video,
+          })
+          if (video) await pollContainer(containerId, accessToken, pollIntervalMs)
+          return containerId
+        }),
+      )
+      const carouselContainerId = await metaService.createCarouselContainer(instagramAccountId, accessToken, {
+        childContainerIds: childIds,
+        caption: post.caption,
+      })
+      mediaId = await metaService.publishContainer(instagramAccountId, accessToken, carouselContainerId)
+    } else if (isVideo(post.mediaUrls[0])) {
       const containerId = await metaService.createVideoContainer(instagramAccountId, accessToken, {
-        videoUrl: post.mediaUrl,
+        videoUrl: post.mediaUrls[0],
         caption: post.caption,
       })
       await pollContainer(containerId, accessToken, pollIntervalMs)
       mediaId = await metaService.publishContainer(instagramAccountId, accessToken, containerId)
     } else {
       const containerId = await metaService.publishImage(instagramAccountId, accessToken, {
-        imageUrl: post.mediaUrl,
+        imageUrl: post.mediaUrls[0],
         caption: post.caption,
       })
       mediaId = await metaService.publishContainer(instagramAccountId, accessToken, containerId)
