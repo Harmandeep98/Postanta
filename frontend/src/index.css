@@ -668,52 +668,6 @@ button.secondary.danger:hover:not(:disabled) {
   margin: 0 0 12px;
 }
 
-.queue-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-}
-
-.queue-card {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-  padding: 14px 18px;
-}
-
-.queue-card h3 {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0 0 8px;
-  font-size: 14px;
-  color: var(--accent);
-}
-
-.queue-card dl {
-  margin: 0;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 4px 12px;
-}
-
-.queue-stat {
-  display: contents;
-}
-
-.queue-stat dt {
-  color: var(--text-muted);
-  font-size: 12px;
-  text-transform: capitalize;
-}
-
-.queue-stat dd {
-  margin: 0;
-  font-weight: 650;
-  text-align: right;
-}
-
 .table-scroll {
   overflow-x: auto;
   border: 1px solid var(--border);
@@ -903,16 +857,3 @@ button.secondary.danger:hover:not(:disabled) {
   color: var(--text-muted);
 }
 
-/* --- system status (collapsed) --- */
-
-.system-status-toggle {
-  margin-bottom: 12px;
-}
-
-.system-status-toggle svg {
-  transition: transform 0.15s ease;
-}
-
-.system-status-toggle svg.chevron-open {
-  transform: rotate(180deg);
-}
