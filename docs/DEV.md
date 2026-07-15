@@ -144,10 +144,12 @@ Authorization: Bearer <clerk-jwt-token>
 {
   "socialAccountId": "clx...",
   "caption": "Hello world! #instagram",
-  "mediaUrl": "https://your-s3-bucket.s3.amazonaws.com/image.jpg",
+  "mediaUrls": ["https://your-s3-bucket.s3.amazonaws.com/image.jpg"],
   "scheduledAt": "2026-06-01T10:00:00.000Z"
 }
 ```
+
+`mediaUrls` — 1 item = single photo/reel, 2-10 items = carousel (mixed image/video allowed).
 
 **Post status values:** `SCHEDULED` → `PUBLISHED` or `FAILED`
 

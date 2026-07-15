@@ -393,7 +393,7 @@
           <tbody>
             <tr><td><code class="inline">socialAccountId</code></td><td>string</td><td>yes</td><td></td></tr>
             <tr><td><code class="inline">caption</code></td><td>string</td><td>no</td><td></td></tr>
-            <tr><td><code class="inline">mediaUrl</code></td><td>string</td><td>no</td><td>public URL from the upload-url step</td></tr>
+            <tr><td><code class="inline">mediaUrls</code></td><td>array of string</td><td>no</td><td>1 item = single photo/reel, 2-10 = carousel. Public URLs from the upload-url step</td></tr>
             <tr><td><code class="inline">scheduledAt</code></td><td>string (ISO date-time)</td><td>yes</td><td>must be in the future</td></tr>
           </tbody>
         </table>
@@ -405,7 +405,7 @@
   -d '{
     "socialAccountId": "cku1a2b3c",
     "caption": "New drop 🔥",
-    "mediaUrl": "https://bucket.s3.amazonaws.com/uploads/abc123.jpg",
+    "mediaUrls": ["https://bucket.s3.amazonaws.com/uploads/abc123.jpg"],
     "scheduledAt": "2026-07-20T15:00:00.000Z"
   }'</code></pre>
         </div>
@@ -415,7 +415,7 @@
   "id": "cpost001",
   "socialAccountId": "cku1a2b3c",
   "caption": "New drop 🔥",
-  "mediaUrl": "https://bucket.s3.amazonaws.com/uploads/abc123.jpg",
+  "mediaUrls": ["https://bucket.s3.amazonaws.com/uploads/abc123.jpg"],
   "scheduledAt": "2026-07-20T15:00:00.000Z",
   "status": "SCHEDULED",
   "bullJobId": "1042",
@@ -453,7 +453,7 @@
           <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
           <tbody>
             <tr><td><code class="inline">caption</code></td><td>string</td><td>optional</td></tr>
-            <tr><td><code class="inline">mediaUrl</code></td><td>string</td><td>optional</td></tr>
+            <tr><td><code class="inline">mediaUrls</code></td><td>array of string</td><td>optional — 1-10 items</td></tr>
             <tr><td><code class="inline">scheduledAt</code></td><td>string (ISO date-time)</td><td>optional, must be in the future — reschedules the BullMQ job</td></tr>
           </tbody>
         </table>
