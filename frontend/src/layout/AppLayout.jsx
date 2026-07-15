@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { UserButton } from '@clerk/clerk-react'
 import { Users, CalendarClock, Zap, LayoutDashboard, Moon, Sun } from 'lucide-react'
+import AccountSwitcher from '../components/AccountSwitcher'
 
 const NAV_ITEMS = [
   { to: '/accounts', label: 'Accounts', icon: Users },
@@ -23,6 +24,7 @@ export default function AppLayout({ theme, onToggleTheme }) {
           ))}
         </nav>
         <div className="navbar-actions">
+          <AccountSwitcher />
           <button type="button" className="theme-toggle-inline" onClick={onToggleTheme} aria-label="Toggle dark mode">
             {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
           </button>

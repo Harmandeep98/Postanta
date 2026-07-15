@@ -28,6 +28,19 @@ function toLocalInputValue(iso) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+function isVideoUrl(url) {
+  return url ? /\.(mp4|mov)$/i.test(url) : false
+}
+
+function MediaThumbnail({ url, className }) {
+  if (!url) return null
+  return isVideoUrl(url) ? (
+    <video src={url} className={className} muted playsInline preload="metadata" />
+  ) : (
+    <img src={url} className={className} alt="" />
+  )
+}
+
 export default function PostsPage() {
   const api = useApiClient()
   const queryClient = useQueryClient()
@@ -119,6 +132,7 @@ export default function PostsPage() {
                 />
               ) : (
                 <>
+                  <MediaThumbnail url={post.mediaUrls?.[0]} className="post-thumbnail" />
                   <div>
                     <span className={`status-badge status-${post.status.toLowerCase()}`}>
                       {(() => {
@@ -235,7 +249,7 @@ function PostForm({ initial, submitLabel, onSubmit, onCancel, pending }) {
         <ul className="media-item-list">
           {mediaItems.map((item) => (
             <li key={item.url}>
-              <CheckCircle2 size={14} />
+              <MediaThumbnail url={item.url} className="media-item-thumbnail" />
               <span>{item.name}</span>
               <button type="button" className="secondary danger" onClick={() => removeMediaItem(item.url)}>
                 <X size={13} />
