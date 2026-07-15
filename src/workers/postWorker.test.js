@@ -4,6 +4,8 @@ vi.mock('../services/metaService.js', () => ({
   getValidToken: vi.fn(),
   publishImage: vi.fn(),
   createVideoContainer: vi.fn(),
+  createCarouselItemContainer: vi.fn(),
+  createCarouselContainer: vi.fn(),
   getContainerStatus: vi.fn(),
   publishContainer: vi.fn(),
 }))
@@ -40,7 +42,7 @@ describe('publishPost', () => {
     const post = {
       id: 'post-1',
       caption: 'Hello!',
-      mediaUrl: 'https://cdn.example.com/img.jpg',
+      mediaUrls: ['https://cdn.example.com/img.jpg'],
       status: 'SCHEDULED',
       socialAccount: mockAccount,
     }
@@ -65,7 +67,7 @@ describe('publishPost', () => {
     const post = {
       id: 'post-2',
       caption: 'Video!',
-      mediaUrl: 'https://cdn.example.com/clip.mp4',
+      mediaUrls: ['https://cdn.example.com/clip.mp4'],
       status: 'SCHEDULED',
       socialAccount: mockAccount,
     }
@@ -89,7 +91,7 @@ describe('publishPost', () => {
     const post = {
       id: 'post-3',
       caption: 'Slow',
-      mediaUrl: 'https://cdn.example.com/slow.mov',
+      mediaUrls: ['https://cdn.example.com/slow.mov'],
       status: 'SCHEDULED',
       socialAccount: mockAccount,
     }
@@ -135,7 +137,7 @@ describe('publishPost', () => {
     const post = {
       id: 'post-6',
       caption: 'Oops',
-      mediaUrl: 'https://cdn.example.com/img.jpg',
+      mediaUrls: ['https://cdn.example.com/img.jpg'],
       status: 'SCHEDULED',
       socialAccount: mockAccount,
     }
@@ -160,7 +162,7 @@ describe('publishPost', () => {
     const post = {
       id: 'post-7',
       caption: 'Error video',
-      mediaUrl: 'https://cdn.example.com/err.mp4',
+      mediaUrls: ['https://cdn.example.com/err.mp4'],
       status: 'SCHEDULED',
       socialAccount: mockAccount,
     }
@@ -181,5 +183,44 @@ describe('publishPost', () => {
       { postId: 'post-7', jobId: 'job-7', err: 'Video container processing failed', attempt: 2 },
       'post publish failed',
     )
+  })
+
+  it('publishes a carousel post with mixed image/video children', async () => {
+    const post = {
+      id: 'post-8',
+      caption: 'Carousel!',
+      mediaUrls: ['https://cdn.example.com/one.jpg', 'https://cdn.example.com/two.mp4'],
+      status: 'SCHEDULED',
+      socialAccount: mockAccount,
+    }
+    mockPrismaFindUnique.mockResolvedValueOnce(post)
+    metaService.createCarouselItemContainer
+      .mockResolvedValueOnce('child-1')
+      .mockResolvedValueOnce('child-2')
+    metaService.getContainerStatus.mockResolvedValueOnce('FINISHED')
+    metaService.createCarouselContainer.mockResolvedValueOnce('carousel-container-1')
+    metaService.publishContainer.mockResolvedValueOnce('media-id-8')
+
+    await publishPost({ data: { postId: 'post-8' } }, prisma, log, { pollIntervalMs: 0 })
+
+    expect(metaService.createCarouselItemContainer).toHaveBeenCalledWith('17841000', 'valid-token', {
+      mediaUrl: 'https://cdn.example.com/one.jpg',
+      isVideo: false,
+    })
+    expect(metaService.createCarouselItemContainer).toHaveBeenCalledWith('17841000', 'valid-token', {
+      mediaUrl: 'https://cdn.example.com/two.mp4',
+      isVideo: true,
+    })
+    // Only the video child gets polled — the image child has no processing status to wait on.
+    expect(metaService.getContainerStatus).toHaveBeenCalledTimes(1)
+    expect(metaService.createCarouselContainer).toHaveBeenCalledWith('17841000', 'valid-token', {
+      childContainerIds: ['child-1', 'child-2'],
+      caption: 'Carousel!',
+    })
+    expect(metaService.publishContainer).toHaveBeenCalledWith('17841000', 'valid-token', 'carousel-container-1')
+    expect(mockPrismaUpdate).toHaveBeenCalledWith({
+      where: { id: 'post-8' },
+      data: { status: 'PUBLISHED', instagramMediaId: 'media-id-8' },
+    })
   })
 })

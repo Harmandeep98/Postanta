@@ -19,6 +19,8 @@ const {
   getValidToken,
   publishImage,
   createVideoContainer,
+  createCarouselItemContainer,
+  createCarouselContainer,
   getContainerStatus,
   publishContainer,
   getUserProfile,
@@ -200,6 +202,62 @@ describe('createVideoContainer', () => {
     expect(opts?.method).toBe('POST')
     expect(url.toString()).toContain('media_type=REELS')
     expect(url.toString()).toContain('video_url=')
+    expect(url.toString()).toContain('caption=')
+  })
+})
+
+describe('createCarouselItemContainer', () => {
+  beforeEach(() => fetchMock.mockReset())
+
+  it('POSTs with is_carousel_item and image_url for an image child', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: 'child-1' }),
+    })
+    const containerId = await createCarouselItemContainer('ig-123', 'token-abc', {
+      mediaUrl: 'https://cdn.example.com/img.jpg',
+      isVideo: false,
+    })
+    expect(containerId).toBe('child-1')
+    const [url] = fetchMock.mock.calls[0]
+    expect(url.toString()).toContain('is_carousel_item=true')
+    expect(url.toString()).toContain('image_url=')
+    expect(url.toString()).not.toContain('media_type=')
+  })
+
+  it('POSTs with media_type=VIDEO (not REELS) for a video child', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: 'child-2' }),
+    })
+    const containerId = await createCarouselItemContainer('ig-123', 'token-abc', {
+      mediaUrl: 'https://cdn.example.com/clip.mp4',
+      isVideo: true,
+    })
+    expect(containerId).toBe('child-2')
+    const [url] = fetchMock.mock.calls[0]
+    expect(url.toString()).toContain('is_carousel_item=true')
+    expect(url.toString()).toContain('video_url=')
+    expect(url.toString()).toContain('media_type=VIDEO')
+  })
+})
+
+describe('createCarouselContainer', () => {
+  beforeEach(() => fetchMock.mockReset())
+
+  it('POSTs media_type=CAROUSEL with comma-joined children and returns containerId', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: 'carousel-1' }),
+    })
+    const containerId = await createCarouselContainer('ig-123', 'token-abc', {
+      childContainerIds: ['child-1', 'child-2'],
+      caption: 'My carousel',
+    })
+    expect(containerId).toBe('carousel-1')
+    const [url] = fetchMock.mock.calls[0]
+    expect(url.toString()).toContain('media_type=CAROUSEL')
+    expect(url.toString()).toContain('children=child-1%2Cchild-2')
     expect(url.toString()).toContain('caption=')
   })
 })

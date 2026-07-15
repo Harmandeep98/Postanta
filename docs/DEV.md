@@ -6,8 +6,11 @@
 |------|---------|---------|
 | Node.js | 18+ | Runtime |
 | pnpm | any | Package manager (`npm i -g pnpm`) |
-| PostgreSQL | 14+ | Database |
 | Redis | 6+ | BullMQ job queue |
+
+No local Postgres install/container needed — local dev and staging both point at the same
+AWS RDS PostgreSQL instance (`db.t4g.micro`, Free Tier eligible). `DATABASE_URL` in `.env.local`
+is the RDS connection string; Redis still runs locally via Docker Compose (`docker compose up`).
 
 ---
 
@@ -38,7 +41,7 @@ Server starts at `http://localhost:3000`.
 
 | Variable | Where to get it |
 |----------|----------------|
-| `DATABASE_URL` | Your local Postgres connection string |
+| `DATABASE_URL` | AWS RDS PostgreSQL connection string (shared by local dev + staging) |
 | `REDIS_URL` | `redis://localhost:6379` for local |
 | `CLERK_SECRET_KEY` | Clerk Dashboard → API Keys |
 | `CLERK_WEBHOOK_SECRET` | Clerk Dashboard → Webhooks → your endpoint |
@@ -141,10 +144,12 @@ Authorization: Bearer <clerk-jwt-token>
 {
   "socialAccountId": "clx...",
   "caption": "Hello world! #instagram",
-  "mediaUrl": "https://your-s3-bucket.s3.amazonaws.com/image.jpg",
+  "mediaUrls": ["https://your-s3-bucket.s3.amazonaws.com/image.jpg"],
   "scheduledAt": "2026-06-01T10:00:00.000Z"
 }
 ```
+
+`mediaUrls` — 1 item = single photo/reel, 2-10 items = carousel (mixed image/video allowed).
 
 **Post status values:** `SCHEDULED` → `PUBLISHED` or `FAILED`
 

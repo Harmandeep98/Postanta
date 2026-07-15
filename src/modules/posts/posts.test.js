@@ -174,6 +174,41 @@ describe('POST /posts', () => {
     })
     expect(res.statusCode).toBe(404)
   })
+
+  it('creates a carousel post with multiple mediaUrls', async () => {
+    prismaSocialAccountFindFirst.mockResolvedValueOnce({ id: 'acc-1', userId: 'user-1' })
+    const mediaUrls = ['https://cdn.example.com/one.jpg', 'https://cdn.example.com/two.mp4']
+    const createdPost = { id: 'post-carousel', socialAccountId: 'acc-1', caption: 'Hi', mediaUrls, status: 'SCHEDULED', bullJobId: null }
+    prismaScheduledPostCreate.mockResolvedValueOnce(createdPost)
+    prismaScheduledPostUpdate.mockResolvedValueOnce({ ...createdPost, bullJobId: mockJobId })
+
+    const res = await fastify.inject({
+      method: 'POST',
+      url: '/posts',
+      headers: AUTH_HEADER,
+      body: { socialAccountId: 'acc-1', caption: 'Hi', mediaUrls, scheduledAt: futureDate },
+    })
+
+    expect(res.statusCode).toBe(201)
+    expect(prismaScheduledPostCreate).toHaveBeenCalledWith({
+      data: { socialAccountId: 'acc-1', caption: 'Hi', mediaUrls, scheduledAt: new Date(futureDate), status: 'SCHEDULED' },
+    })
+  })
+
+  it('returns 400 when mediaUrls exceeds the 10-item carousel limit', async () => {
+    const res = await fastify.inject({
+      method: 'POST',
+      url: '/posts',
+      headers: AUTH_HEADER,
+      body: {
+        socialAccountId: 'acc-1',
+        caption: 'Hi',
+        mediaUrls: Array.from({ length: 11 }, (_, i) => `https://cdn.example.com/${i}.jpg`),
+        scheduledAt: futureDate,
+      },
+    })
+    expect(res.statusCode).toBe(400)
+  })
 })
 
 describe('GET /posts', () => {

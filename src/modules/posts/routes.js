@@ -47,13 +47,19 @@ export default async function postRoutes(fastify) {
         properties: {
           socialAccountId: { type: 'string' },
           caption: { type: 'string' },
-          mediaUrl: { type: 'string', description: 'Public URL of the uploaded media' },
+          mediaUrls: {
+            type: 'array',
+            items: { type: 'string' },
+            minItems: 1,
+            maxItems: 10,
+            description: '1 item = single photo/reel, 2-10 = carousel. Public URLs of uploaded media.',
+          },
           scheduledAt: { type: 'string', format: 'date-time', description: 'Must be in the future' },
         },
       },
     },
   }, async (request, reply) => {
-    const { socialAccountId, caption, mediaUrl, scheduledAt } = request.body
+    const { socialAccountId, caption, mediaUrls, scheduledAt } = request.body
 
     if (!scheduledAt || new Date(scheduledAt) <= new Date()) {
       return reply.code(400).send({ error: 'scheduledAt must be in the future' })
@@ -65,7 +71,7 @@ export default async function postRoutes(fastify) {
     if (!account) return reply.code(404).send({ error: 'Account not found' })
 
     const post = await fastify.prisma.scheduledPost.create({
-      data: { socialAccountId, caption, mediaUrl, scheduledAt: new Date(scheduledAt), status: 'SCHEDULED' },
+      data: { socialAccountId, caption, mediaUrls: mediaUrls ?? [], scheduledAt: new Date(scheduledAt), status: 'SCHEDULED' },
     })
 
     let bullJobId
@@ -120,7 +126,7 @@ export default async function postRoutes(fastify) {
         type: 'object',
         properties: {
           caption: { type: 'string' },
-          mediaUrl: { type: 'string' },
+          mediaUrls: { type: 'array', items: { type: 'string' }, minItems: 1, maxItems: 10 },
           scheduledAt: { type: 'string', format: 'date-time', description: 'Must be in the future' },
         },
       },
@@ -135,7 +141,7 @@ export default async function postRoutes(fastify) {
       return reply.code(400).send({ error: 'Cannot edit a published post' })
     }
 
-    const { caption, mediaUrl, scheduledAt } = request.body ?? {}
+    const { caption, mediaUrls, scheduledAt } = request.body ?? {}
 
     if (scheduledAt !== undefined && new Date(scheduledAt) <= new Date()) {
       return reply.code(400).send({ error: 'scheduledAt must be in the future' })
@@ -143,7 +149,7 @@ export default async function postRoutes(fastify) {
 
     const updateData = {}
     if (caption !== undefined) updateData.caption = caption
-    if (mediaUrl !== undefined) updateData.mediaUrl = mediaUrl
+    if (mediaUrls !== undefined) updateData.mediaUrls = mediaUrls
     if (scheduledAt !== undefined) {
       updateData.scheduledAt = new Date(scheduledAt)
       try {
