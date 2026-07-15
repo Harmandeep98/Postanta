@@ -289,6 +289,19 @@ button.secondary.danger:hover:not(:disabled) {
   flex-shrink: 0;
 }
 
+.account-switcher {
+  font: inherit;
+  font-weight: 550;
+  font-size: 13px;
+  background: var(--surface-sunken);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  max-width: 160px;
+}
+
 .theme-toggle-inline {
   display: flex;
   align-items: center;
@@ -454,6 +467,15 @@ button.secondary.danger:hover:not(:disabled) {
   box-shadow: var(--shadow);
 }
 
+.post-thumbnail {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--surface-sunken);
+}
+
 .post-caption {
   margin: 8px 0 4px;
   max-width: 50ch;
@@ -564,9 +586,13 @@ button.secondary.danger:hover:not(:disabled) {
   font-size: 13px;
 }
 
-.media-item-list li svg:first-child {
-  color: var(--accent);
+.media-item-thumbnail {
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--surface);
 }
 
 .media-item-list li span {
